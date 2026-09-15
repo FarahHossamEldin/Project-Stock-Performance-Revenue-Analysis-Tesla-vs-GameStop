@@ -144,3 +144,25 @@ The project provided practical experience in using Python-based data analysis to
 
 ```bash
 pip install pandas matplotlib plotly yfinance beautifulsoup4 requests
+
+3. Install the required libraries:
+
+```bash
+jupyter notebook
+
+4-Open the project notebook and run the cells sequentially.
+
+Project Structure
+Stock-Performance-Revenue-Analysis/
+│
+├── README.md
+├── Stock_Performance_Revenue_Analysis.ipynb
+│
+├── images/
+│   ├── revenue_growth_comparison.png
+│   ├── stock_price_comparison.png
+│   └── revenue_comparison.png
+│
+└── data/
+    ├── tesla_data.csv
+    └── gamestop_data.csv
