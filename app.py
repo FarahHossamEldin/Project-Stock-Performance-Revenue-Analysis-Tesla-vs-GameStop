@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -9,17 +8,19 @@ st.set_page_config(
     layout="wide"
 )
 
-# -----------------------------
 # Load data
-# -----------------------------
-
 stock_comparison = pd.read_csv("stock_comparison.csv")
 revenue_comparison = pd.read_csv("revenue_comparison.csv")
 
-# -----------------------------
-# Page title
-# -----------------------------
+# Convert Date to datetime
+stock_comparison["Date"] = pd.to_datetime(stock_comparison["Date"])
+revenue_comparison["Date"] = pd.to_datetime(revenue_comparison["Date"])
 
+# Sort data by date
+stock_comparison = stock_comparison.sort_values("Date").reset_index(drop=True)
+revenue_comparison = revenue_comparison.sort_values("Date").reset_index(drop=True)
+
+# Page title
 st.title("Tesla vs GameStop Stock Analysis")
 
 st.write(
@@ -112,8 +113,43 @@ st.plotly_chart(
     width="stretch",
     config={"responsive": True}
 )
-```
 
-ده كده **الملف كامل**، مش جزء منه. انسخيه واستبدلي محتوى `app.py` كله بالكود ده.
+# -----------------------------
+# Revenue Growth Comparison
+# -----------------------------
 
-بعدها نشغله ونتأكد إن الـ **4 KPI Cards** ظهرت صح قبل ما نضيف الـ filters.
+revenue_growth = revenue_comparison.copy()
+
+revenue_growth["Tesla Revenue Growth (%)"] = (
+    revenue_growth["Tesla Revenue"].pct_change() * 100
+)
+
+revenue_growth["GameStop Revenue Growth (%)"] = (
+    revenue_growth["GameStop Revenue"].pct_change() * 100
+)
+
+fig_growth = px.line(
+    revenue_growth,
+    x="Date",
+    y=[
+        "Tesla Revenue Growth (%)",
+        "GameStop Revenue Growth (%)"
+    ],
+    title="Tesla vs GameStop Revenue Growth Comparison",
+    color_discrete_map={
+        "Tesla Revenue Growth (%)": "#1f77b4",
+        "GameStop Revenue Growth (%)": "#ff7f0e"
+    }
+)
+
+fig_growth.update_layout(
+    xaxis_title="Date",
+    yaxis_title="Revenue Growth (%)",
+    template="plotly_white"
+)
+
+st.plotly_chart(
+    fig_growth,
+    width="stretch",
+    config={"responsive": True}
+)
