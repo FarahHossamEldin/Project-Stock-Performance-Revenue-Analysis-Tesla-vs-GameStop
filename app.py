@@ -19,34 +19,49 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+    /* Main background */
     .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #172554 100%);
+        background: linear-gradient(
+            135deg,
+            #0f172a 0%,
+            #111827 50%,
+            #172554 100%
+        );
         color: white;
     }
 
+    /* All text */
+    html, body, [class*="css"], p, span, label, div {
+        color: white;
+    }
+
+    /* Main title */
     .main-title {
         font-size: 42px;
         font-weight: 700;
         text-align: center;
         margin-bottom: 5px;
-        color: white;
+        color: white !important;
     }
 
+    /* Subtitle */
     .subtitle {
         text-align: center;
         font-size: 18px;
-        color: #cbd5e1;
+        color: white !important;
         margin-bottom: 35px;
     }
 
+    /* Section titles */
     .section-title {
         font-size: 26px;
         font-weight: 600;
-        color: white;
-        margin-top: 30px;
+        color: white !important;
+        margin-top: 25px;
         margin-bottom: 15px;
     }
 
+    /* KPI Cards */
     div[data-testid="stMetric"] {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -56,19 +71,20 @@ st.markdown("""
     }
 
     div[data-testid="stMetricLabel"] {
-        color: #cbd5e1;
+        color: white !important;
     }
 
     div[data-testid="stMetricValue"] {
-        color: white;
+        color: white !important;
         font-size: 28px;
     }
 
+    /* Footer */
     .footer {
         text-align: center;
-        color: #94a3b8;
+        color: white !important;
         font-size: 14px;
-        margin-top: 50px;
+        margin-top: 40px;
         padding: 20px;
     }
 
@@ -82,12 +98,21 @@ st.markdown("""
 stock_comparison = pd.read_csv("stock_comparison.csv")
 revenue_comparison = pd.read_csv("revenue_comparison.csv")
 
-# Convert dates
+# Convert Date
 stock_comparison["Date"] = pd.to_datetime(stock_comparison["Date"])
 
 # Sort data
-stock_comparison = stock_comparison.sort_values("Date").reset_index(drop=True)
-revenue_comparison = revenue_comparison.sort_values("Year").reset_index(drop=True)
+stock_comparison = (
+    stock_comparison
+    .sort_values("Date")
+    .reset_index(drop=True)
+)
+
+revenue_comparison = (
+    revenue_comparison
+    .sort_values("Year")
+    .reset_index(drop=True)
+)
 
 # =====================================================
 # Header
@@ -99,7 +124,9 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitle">Interactive Stock & Revenue Analysis Dashboard</div>',
+    '<div class="subtitle">'
+    'Interactive Stock & Revenue Analysis Dashboard'
+    '</div>',
     unsafe_allow_html=True
 )
 
@@ -157,20 +184,35 @@ fig_stock = px.line(
 
 fig_stock.update_traces(
     line=dict(width=3),
-    hovertemplate="<b>%{fullData.name}</b><br>"
-                  "Date: %{x}<br>"
-                  "Price: $%{y:.2f}<extra></extra>"
+    hovertemplate=(
+        "<b>%{fullData.name}</b><br>"
+        "Date: %{x}<br>"
+        "Price: $%{y:.2f}"
+        "<extra></extra>"
+    )
 )
 
 fig_stock.update_layout(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    xaxis_title="Date",
-    yaxis_title="Stock Price (USD)",
-    legend_title="Company",
+    font=dict(color="white"),
+    xaxis=dict(
+        title="Date",
+        color="white",
+        gridcolor="rgba(255,255,255,0.1)"
+    ),
+    yaxis=dict(
+        title="Stock Price (USD)",
+        color="white",
+        gridcolor="rgba(255,255,255,0.1)"
+    ),
+    legend=dict(
+        title="Company",
+        font=dict(color="white")
+    ),
     hovermode="x unified",
-    height=500,
+    height=480,
     margin=dict(l=20, r=20, t=40, b=20)
 )
 
@@ -184,111 +226,151 @@ st.plotly_chart(
 )
 
 # =====================================================
+# Revenue + Growth Side by Side
+# =====================================================
+
+col_left, col_right = st.columns(2)
+
+# =====================================================
 # Revenue Comparison
 # =====================================================
 
-st.markdown(
-    '<div class="section-title">💰 Revenue Comparison</div>',
-    unsafe_allow_html=True
-)
+with col_left:
 
-fig_revenue = px.line(
-    revenue_comparison,
-    x="Year",
-    y=["Tesla Revenue", "GameStop Revenue"],
-    color_discrete_map={
-        "Tesla Revenue": "#00BFFF",
-        "GameStop Revenue": "#FF6B6B"
-    }
-)
+    st.markdown(
+        '<div class="section-title">💰 Revenue Comparison</div>',
+        unsafe_allow_html=True
+    )
 
-fig_revenue.update_traces(
-    line=dict(width=3),
-    hovertemplate="<b>%{fullData.name}</b><br>"
-                  "Year: %{x}<br>"
-                  "Revenue: $%{y:,.0f}<extra></extra>"
-)
+    fig_revenue = px.line(
+        revenue_comparison,
+        x="Year",
+        y=["Tesla Revenue", "GameStop Revenue"],
+        color_discrete_map={
+            "Tesla Revenue": "#00BFFF",
+            "GameStop Revenue": "#FF6B6B"
+        }
+    )
 
-fig_revenue.update_layout(
-    template="plotly_dark",
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis_title="Year",
-    yaxis_title="Revenue (USD)",
-    legend_title="Company",
-    hovermode="x unified",
-    height=500,
-    margin=dict(l=20, r=20, t=40, b=20)
-)
+    fig_revenue.update_traces(
+        line=dict(width=3),
+        hovertemplate=(
+            "<b>%{fullData.name}</b><br>"
+            "Year: %{x}<br>"
+            "Revenue: $%{y:,.0f}"
+            "<extra></extra>"
+        )
+    )
 
-st.plotly_chart(
-    fig_revenue,
-    width="stretch",
-    config={
-        "responsive": True,
-        "displaylogo": False
-    }
-)
+    fig_revenue.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        xaxis=dict(
+            title="Year",
+            color="white",
+            gridcolor="rgba(255,255,255,0.1)"
+        ),
+        yaxis=dict(
+            title="Revenue (USD)",
+            color="white",
+            gridcolor="rgba(255,255,255,0.1)"
+        ),
+        legend=dict(
+            title="Company",
+            font=dict(color="white")
+        ),
+        hovermode="x unified",
+        height=430,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+
+    st.plotly_chart(
+        fig_revenue,
+        width="stretch",
+        config={
+            "responsive": True,
+            "displaylogo": False
+        }
+    )
 
 # =====================================================
 # Revenue Growth Comparison
 # =====================================================
 
-st.markdown(
-    '<div class="section-title">📊 Revenue Growth Comparison</div>',
-    unsafe_allow_html=True
-)
+with col_right:
 
-revenue_growth = revenue_comparison.copy()
+    st.markdown(
+        '<div class="section-title">📊 Revenue Growth</div>',
+        unsafe_allow_html=True
+    )
 
-revenue_growth["Tesla Revenue Growth (%)"] = (
-    revenue_growth["Tesla Revenue"].pct_change() * 100
-)
+    revenue_growth = revenue_comparison.copy()
 
-revenue_growth["GameStop Revenue Growth (%)"] = (
-    revenue_growth["GameStop Revenue"].pct_change() * 100
-)
+    revenue_growth["Tesla Revenue Growth (%)"] = (
+        revenue_growth["Tesla Revenue"].pct_change() * 100
+    )
 
-fig_growth = px.line(
-    revenue_growth,
-    x="Year",
-    y=[
-        "Tesla Revenue Growth (%)",
-        "GameStop Revenue Growth (%)"
-    ],
-    color_discrete_map={
-        "Tesla Revenue Growth (%)": "#00BFFF",
-        "GameStop Revenue Growth (%)": "#FF6B6B"
-    }
-)
+    revenue_growth["GameStop Revenue Growth (%)"] = (
+        revenue_growth["GameStop Revenue"].pct_change() * 100
+    )
 
-fig_growth.update_traces(
-    line=dict(width=3),
-    hovertemplate="<b>%{fullData.name}</b><br>"
-                  "Year: %{x}<br>"
-                  "Growth: %{y:.2f}%<extra></extra>"
-)
+    fig_growth = px.line(
+        revenue_growth,
+        x="Year",
+        y=[
+            "Tesla Revenue Growth (%)",
+            "GameStop Revenue Growth (%)"
+        ],
+        color_discrete_map={
+            "Tesla Revenue Growth (%)": "#00BFFF",
+            "GameStop Revenue Growth (%)": "#FF6B6B"
+        }
+    )
 
-fig_growth.update_layout(
-    template="plotly_dark",
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis_title="Year",
-    yaxis_title="Revenue Growth (%)",
-    legend_title="Company",
-    hovermode="x unified",
-    height=500,
-    margin=dict(l=20, r=20, t=40, b=20)
-)
+    fig_growth.update_traces(
+        line=dict(width=3),
+        hovertemplate=(
+            "<b>%{fullData.name}</b><br>"
+            "Year: %{x}<br>"
+            "Growth: %{y:.2f}%"
+            "<extra></extra>"
+        )
+    )
 
-st.plotly_chart(
-    fig_growth,
-    width="stretch",
-    config={
-        "responsive": True,
-        "displaylogo": False
-    }
-)
+    fig_growth.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        xaxis=dict(
+            title="Year",
+            color="white",
+            gridcolor="rgba(255,255,255,0.1)"
+        ),
+        yaxis=dict(
+            title="Revenue Growth (%)",
+            color="white",
+            gridcolor="rgba(255,255,255,0.1)"
+        ),
+        legend=dict(
+            title="Company",
+            font=dict(color="white")
+        ),
+        hovermode="x unified",
+        height=430,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+
+    st.plotly_chart(
+        fig_growth,
+        width="stretch",
+        config={
+            "responsive": True,
+            "displaylogo": False
+        }
+    )
 
 # =====================================================
 # Footer
