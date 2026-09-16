@@ -19,233 +19,194 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-    /* =========================
-       MAIN BACKGROUND
-       ========================= */
+.stApp {
+    background:
+        radial-gradient(circle at 10% 10%, rgba(0,191,255,0.12), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(255,107,107,0.10), transparent 30%),
+        linear-gradient(135deg, #020617 0%, #0f172a 50%, #111827 100%);
+    color: white;
+}
 
-    .stApp {
-        background:
-            radial-gradient(
-                circle at 10% 10%,
-                rgba(0, 191, 255, 0.12),
-                transparent 30%
-            ),
-            radial-gradient(
-                circle at 90% 20%,
-                rgba(255, 107, 107, 0.10),
-                transparent 30%
-            ),
-            linear-gradient(
-                135deg,
-                #020617 0%,
-                #0f172a 50%,
-                #111827 100%
-            );
+/* Make all normal text white */
+p, span, label {
+    color: white !important;
+}
 
-        color: white;
-    }
+/* Main title */
+.main-title {
+    font-size: 48px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    background: linear-gradient(90deg, #00BFFF, #ffffff, #FF6B6B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-    /* =========================
-       GENERAL TEXT
-       ========================= */
+/* Subtitle */
+.subtitle {
+    text-align: center;
+    font-size: 18px;
+    color: #cbd5e1 !important;
+    margin-bottom: 35px;
+}
 
-    html, body, p, span, label, div {
-        color: white;
-    }
+/* Section titles */
+.section-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: white !important;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
 
-    /* =========================
-       MAIN TITLE
-       ========================= */
-
-    .main-title {
-        font-size: 48px;
-        font-weight: 800;
-        text-align: center;
-
-        margin-top: 10px;
-        margin-bottom: 5px;
-
-        background: linear-gradient(
-            90deg,
-            #00BFFF,
-            #ffffff,
-            #FF6B6B
+/* KPI Cards */
+div[data-testid="stMetric"] {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.12),
+            rgba(255,255,255,0.035)
         );
 
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    padding: 22px;
 
-        text-shadow:
-            0px 0px 25px rgba(0, 191, 255, 0.25);
-    }
+    box-shadow:
+        0px 15px 35px rgba(0,0,0,0.35),
+        inset 0px 1px 1px rgba(255,255,255,0.15);
 
-    .subtitle {
-        text-align: center;
-        font-size: 18px;
-        color: #cbd5e1 !important;
+    backdrop-filter: blur(15px);
 
-        margin-bottom: 35px;
-    }
+    transition: transform 0.25s ease,
+                box-shadow 0.25s ease;
+}
 
-    /* =========================
-       SECTION TITLES
-       ========================= */
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-7px) scale(1.02);
 
-    .section-title {
-        font-size: 26px;
-        font-weight: 700;
+    box-shadow:
+        0px 20px 45px rgba(0,0,0,0.5),
+        0px 0px 25px rgba(0,191,255,0.15);
+}
 
-        color: white !important;
+div[data-testid="stMetricLabel"] {
+    color: #cbd5e1 !important;
+}
 
-        margin-top: 25px;
-        margin-bottom: 15px;
-    }
+div[data-testid="stMetricValue"] {
+    color: white !important;
+    font-size: 28px;
+    font-weight: 700;
+}
 
-    /* =========================
-       KPI CARDS
-       ========================= */
+/* Graph containers */
+div[data-testid="stPlotlyChart"] {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.07),
+            rgba(255,255,255,0.025)
+        );
 
-    div[data-testid="stMetric"] {
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 8px;
 
-        background:
-            linear-gradient(
-                145deg,
-                rgba(255,255,255,0.12),
-                rgba(255,255,255,0.035)
-            );
+    box-shadow:
+        0px 15px 35px rgba(0,0,0,0.3),
+        inset 0px 1px 1px rgba(255,255,255,0.08);
+}
 
-        border: 1px solid rgba(255,255,255,0.18);
+/* Insight cards */
+.insight-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.10),
+            rgba(255,255,255,0.035)
+        );
 
-        border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 18px;
 
-        padding: 22px;
+    padding: 20px;
+    min-height: 125px;
 
-        box-shadow:
-            0px 15px 35px rgba(0,0,0,0.35),
-            inset 0px 1px 1px rgba(255,255,255,0.15);
+    box-shadow:
+        0px 12px 30px rgba(0,0,0,0.30);
 
-        backdrop-filter: blur(15px);
+    backdrop-filter: blur(12px);
 
-        transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease;
-    }
+    transition: transform 0.25s ease,
+                box-shadow 0.25s ease;
+}
 
-    div[data-testid="stMetric"]:hover {
+.insight-card:hover {
+    transform: translateY(-5px);
 
-        transform:
-            translateY(-7px)
-            scale(1.02);
+    box-shadow:
+        0px 18px 35px rgba(0,0,0,0.4),
+        0px 0px 20px rgba(0,191,255,0.10);
+}
 
-        box-shadow:
-            0px 20px 45px rgba(0,0,0,0.5),
-            0px 0px 25px rgba(0,191,255,0.15);
-    }
+.insight-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: white !important;
+    margin-bottom: 12px;
+}
 
-    div[data-testid="stMetricLabel"] {
-        color: #cbd5e1 !important;
-        font-size: 15px;
-    }
+.insight-text {
+    font-size: 15px;
+    color: #e2e8f0 !important;
+    line-height: 1.6;
+}
 
-    div[data-testid="stMetricValue"] {
-        color: white !important;
-        font-size: 30px;
-        font-weight: 700;
-    }
+/* Conclusion box */
+.conclusion-box {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,191,255,0.12),
+            rgba(255,107,107,0.08)
+        );
 
-    /* =========================
-       GRAPH CONTAINERS
-       ========================= */
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 22px;
 
-    div[data-testid="stPlotlyChart"] {
+    padding: 28px 32px;
 
-        background:
-            linear-gradient(
-                145deg,
-                rgba(255,255,255,0.07),
-                rgba(255,255,255,0.025)
-            );
+    box-shadow:
+        0px 15px 35px rgba(0,0,0,0.35);
 
-        border:
-            1px solid rgba(255,255,255,0.12);
+    margin-top: 10px;
+}
 
-        border-radius: 20px;
+.conclusion-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: white !important;
+    margin-bottom: 12px;
+}
 
-        padding: 8px;
+.conclusion-text {
+    font-size: 16px;
+    color: #e2e8f0 !important;
+    line-height: 1.8;
+}
 
-        box-shadow:
-            0px 15px 35px rgba(0,0,0,0.3),
-            inset 0px 1px 1px rgba(255,255,255,0.08);
-
-        backdrop-filter: blur(12px);
-    }
-
-    /* =========================
-       INSIGHT CARDS
-       ========================= */
-
-    .insight-card {
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(255,255,255,0.10),
-                rgba(255,255,255,0.035)
-            );
-
-        border:
-            1px solid rgba(255,255,255,0.15);
-
-        border-radius: 18px;
-
-        padding: 20px;
-
-        min-height: 120px;
-
-        box-shadow:
-            0px 12px 30px rgba(0,0,0,0.30);
-
-        backdrop-filter: blur(12px);
-
-        transition:
-            transform 0.25s ease;
-    }
-
-    .insight-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .insight-title {
-        font-size: 17px;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .insight-text {
-        font-size: 15px;
-        color: #cbd5e1 !important;
-        line-height: 1.6;
-    }
-
-    /* =========================
-       FOOTER
-       ========================= */
-
-    .footer {
-
-        text-align: center;
-
-        color: #94a3b8 !important;
-
-        font-size: 14px;
-
-        margin-top: 45px;
-
-        padding: 25px;
-
-        border-top:
-            1px solid rgba(255,255,255,0.08);
-    }
+/* Footer */
+.footer {
+    text-align: center;
+    color: #94a3b8 !important;
+    font-size: 14px;
+    margin-top: 45px;
+    padding: 25px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -257,12 +218,10 @@ st.markdown("""
 stock_comparison = pd.read_csv("stock_comparison.csv")
 revenue_comparison = pd.read_csv("revenue_comparison.csv")
 
-# Convert stock dates
 stock_comparison["Date"] = pd.to_datetime(
     stock_comparison["Date"]
 )
 
-# Sort data
 stock_comparison = (
     stock_comparison
     .sort_values("Date")
@@ -276,19 +235,17 @@ revenue_comparison = (
 )
 
 # =====================================================
-# CALCULATE REVENUE GROWTH
+# REVENUE GROWTH
 # =====================================================
 
 revenue_growth = revenue_comparison.copy()
 
 revenue_growth["Tesla Revenue Growth (%)"] = (
-    revenue_growth["Tesla Revenue"]
-    .pct_change() * 100
+    revenue_growth["Tesla Revenue"].pct_change() * 100
 )
 
 revenue_growth["GameStop Revenue Growth (%)"] = (
-    revenue_growth["GameStop Revenue"]
-    .pct_change() * 100
+    revenue_growth["GameStop Revenue"].pct_change() * 100
 )
 
 # =====================================================
@@ -296,9 +253,7 @@ revenue_growth["GameStop Revenue Growth (%)"] = (
 # =====================================================
 
 st.markdown(
-    '<div class="main-title">'
-    '📈 Tesla vs GameStop'
-    '</div>',
+    '<div class="main-title">📈 Tesla vs GameStop</div>',
     unsafe_allow_html=True
 )
 
@@ -316,50 +271,53 @@ st.markdown(
 latest_stock = stock_comparison.iloc[-1]
 latest_revenue = revenue_comparison.iloc[-1]
 
+latest_stock_date = latest_stock["Date"].strftime("%Y-%m-%d")
+latest_revenue_year = int(latest_revenue["Year"])
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric(
-        label="🚗 Tesla Stock Price",
+        label="🚗 Tesla Stock Price — Latest",
         value=f"${latest_stock['Tesla Close']:.2f}"
     )
 
 with col2:
     st.metric(
-        label="🎮 GameStop Stock Price",
+        label="🎮 GameStop Stock Price — Latest",
         value=f"${latest_stock['GameStop Close']:.2f}"
     )
 
 with col3:
     st.metric(
-        label="💰 Tesla Revenue",
+        label=f"💰 Tesla Revenue — {latest_revenue_year}",
         value=f"${latest_revenue['Tesla Revenue']:,.0f}"
     )
 
 with col4:
     st.metric(
-        label="💰 GameStop Revenue",
+        label=f"💰 GameStop Revenue — {latest_revenue_year}",
         value=f"${latest_revenue['GameStop Revenue']:,.0f}"
     )
 
+st.caption(
+    f"Stock prices shown for the latest available date: {latest_stock_date} | "
+    f"Revenue figures shown for the latest available year: {latest_revenue_year}"
+)
+
 # =====================================================
-# STOCK PRICE GRAPH
+# STOCK PRICE COMPARISON
 # =====================================================
 
 st.markdown(
-    '<div class="section-title">'
-    '📈 Stock Price Comparison'
-    '</div>',
+    '<div class="section-title">📈 Stock Price Comparison</div>',
     unsafe_allow_html=True
 )
 
 fig_stock = px.line(
     stock_comparison,
     x="Date",
-    y=[
-        "Tesla Close",
-        "GameStop Close"
-    ],
+    y=["Tesla Close", "GameStop Close"],
     color_discrete_map={
         "Tesla Close": "#00BFFF",
         "GameStop Close": "#FF6B6B"
@@ -368,7 +326,6 @@ fig_stock = px.line(
 
 fig_stock.update_traces(
     line=dict(width=3),
-
     hovertemplate=(
         "<b>%{fullData.name}</b><br>"
         "Date: %{x}<br>"
@@ -378,16 +335,10 @@ fig_stock.update_traces(
 )
 
 fig_stock.update_layout(
-
     template="plotly_dark",
-
     paper_bgcolor="rgba(0,0,0,0)",
-
     plot_bgcolor="rgba(0,0,0,0)",
-
-    font=dict(
-        color="white"
-    ),
+    font=dict(color="white"),
 
     xaxis=dict(
         title="Date",
@@ -407,7 +358,6 @@ fig_stock.update_layout(
     ),
 
     hovermode="x unified",
-
     height=500,
 
     margin=dict(
@@ -440,19 +390,14 @@ col_left, col_right = st.columns(2)
 with col_left:
 
     st.markdown(
-        '<div class="section-title">'
-        '💰 Revenue Comparison'
-        '</div>',
+        '<div class="section-title">💰 Revenue Comparison</div>',
         unsafe_allow_html=True
     )
 
     fig_revenue = px.line(
         revenue_comparison,
         x="Year",
-        y=[
-            "Tesla Revenue",
-            "GameStop Revenue"
-        ],
+        y=["Tesla Revenue", "GameStop Revenue"],
         color_discrete_map={
             "Tesla Revenue": "#00BFFF",
             "GameStop Revenue": "#FF6B6B"
@@ -461,7 +406,6 @@ with col_left:
 
     fig_revenue.update_traces(
         line=dict(width=3),
-
         hovertemplate=(
             "<b>%{fullData.name}</b><br>"
             "Year: %{x}<br>"
@@ -471,16 +415,10 @@ with col_left:
     )
 
     fig_revenue.update_layout(
-
         template="plotly_dark",
-
         paper_bgcolor="rgba(0,0,0,0)",
-
         plot_bgcolor="rgba(0,0,0,0)",
-
-        font=dict(
-            color="white"
-        ),
+        font=dict(color="white"),
 
         xaxis=dict(
             title="Year",
@@ -500,7 +438,6 @@ with col_left:
         ),
 
         hovermode="x unified",
-
         height=430,
 
         margin=dict(
@@ -527,9 +464,7 @@ with col_left:
 with col_right:
 
     st.markdown(
-        '<div class="section-title">'
-        '📊 Revenue Growth'
-        '</div>',
+        '<div class="section-title">📊 Revenue Growth</div>',
         unsafe_allow_html=True
     )
 
@@ -548,7 +483,6 @@ with col_right:
 
     fig_growth.update_traces(
         line=dict(width=3),
-
         hovertemplate=(
             "<b>%{fullData.name}</b><br>"
             "Year: %{x}<br>"
@@ -558,16 +492,10 @@ with col_right:
     )
 
     fig_growth.update_layout(
-
         template="plotly_dark",
-
         paper_bgcolor="rgba(0,0,0,0)",
-
         plot_bgcolor="rgba(0,0,0,0)",
-
-        font=dict(
-            color="white"
-        ),
+        font=dict(color="white"),
 
         xaxis=dict(
             title="Year",
@@ -587,7 +515,6 @@ with col_right:
         ),
 
         hovermode="x unified",
-
         height=430,
 
         margin=dict(
@@ -612,13 +539,10 @@ with col_right:
 # =====================================================
 
 st.markdown(
-    '<div class="section-title">'
-    '💡 Key Insights'
-    '</div>',
+    '<div class="section-title">💡 Key Insights</div>',
     unsafe_allow_html=True
 )
 
-# Average growth
 tesla_avg_growth = (
     revenue_growth["Tesla Revenue Growth (%)"]
     .dropna()
@@ -631,11 +555,6 @@ gamestop_avg_growth = (
     .mean()
 )
 
-# Highest stock price
-tesla_max_stock = stock_comparison["Tesla Close"].max()
-gamestop_max_stock = stock_comparison["GameStop Close"].max()
-
-# Revenue change
 tesla_revenue_change = (
     (
         latest_revenue["Tesla Revenue"]
@@ -650,99 +569,97 @@ gamestop_revenue_change = (
     ) - 1
 ) * 100
 
-# =====================================================
-# INSIGHT CARDS
-# =====================================================
-
 insight1, insight2, insight3, insight4 = st.columns(4)
 
 with insight1:
-
     st.markdown(
-        f"""
-        <div class="insight-card">
-            <div class="insight-title">
-                📈 Tesla Avg. Growth
-            </div>
-
-            <div class="insight-text">
-                Tesla's average period-over-period
-                revenue growth was
-                <b>{tesla_avg_growth:.2f}%</b>.
-            </div>
-        </div>
-        """,
+        f'<div class="insight-card">'
+        f'<div class="insight-title">📈 Tesla Avg. Growth</div>'
+        f'<div class="insight-text">'
+        f'Tesla recorded an average period-over-period revenue growth '
+        f'of <b>{tesla_avg_growth:.2f}%</b> across the available data.'
+        f'</div>'
+        f'</div>',
         unsafe_allow_html=True
     )
 
 with insight2:
-
     st.markdown(
-        f"""
-        <div class="insight-card">
-            <div class="insight-title">
-                🎮 GameStop Avg. Growth
-            </div>
-
-            <div class="insight-text">
-                GameStop's average period-over-period
-                revenue growth was
-                <b>{gamestop_avg_growth:.2f}%</b>.
-            </div>
-        </div>
-        """,
+        f'<div class="insight-card">'
+        f'<div class="insight-title">🎮 GameStop Avg. Growth</div>'
+        f'<div class="insight-text">'
+        f'GameStop recorded an average period-over-period revenue growth '
+        f'of <b>{gamestop_avg_growth:.2f}%</b> across the available data.'
+        f'</div>'
+        f'</div>',
         unsafe_allow_html=True
     )
 
 with insight3:
-
     st.markdown(
-        f"""
-        <div class="insight-card">
-            <div class="insight-title">
-                🚗 Tesla Revenue Change
-            </div>
-
-            <div class="insight-text">
-                Tesla revenue changed by
-                <b>{tesla_revenue_change:.2f}%</b>
-                across the available period.
-            </div>
-        </div>
-        """,
+        f'<div class="insight-card">'
+        f'<div class="insight-title">🚗 Tesla Revenue Change</div>'
+        f'<div class="insight-text">'
+        f'Tesla revenue changed by <b>{tesla_revenue_change:.2f}%</b> '
+        f'from the first to the latest available year.'
+        f'</div>'
+        f'</div>',
         unsafe_allow_html=True
     )
 
 with insight4:
-
     st.markdown(
-        f"""
-        <div class="insight-card">
-            <div class="insight-title">
-                🎮 GameStop Revenue Change
-            </div>
-
-            <div class="insight-text">
-                GameStop revenue changed by
-                <b>{gamestop_revenue_change:.2f}%</b>
-                across the available period.
-            </div>
-        </div>
-        """,
+        f'<div class="insight-card">'
+        f'<div class="insight-title">🎮 GameStop Revenue Change</div>'
+        f'<div class="insight-text">'
+        f'GameStop revenue changed by <b>{gamestop_revenue_change:.2f}%</b> '
+        f'from the first to the latest available year.'
+        f'</div>'
+        f'</div>',
         unsafe_allow_html=True
     )
+
+# =====================================================
+# CONCLUSION
+# =====================================================
+
+st.markdown(
+    '<div class="section-title">🔎 Conclusion</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    f'<div class="conclusion-box">'
+    f'<div class="conclusion-title">'
+    f'What does the analysis show?'
+    f'</div>'
+    f'<div class="conclusion-text">'
+    f'The dashboard provides a combined view of stock price movements, '
+    f'revenue trends, and revenue growth for Tesla and GameStop. '
+    f'Across the available revenue data, Tesla shows an average '
+    f'period-over-period growth of <b>{tesla_avg_growth:.2f}%</b>, '
+    f'while GameStop shows <b>{gamestop_avg_growth:.2f}%</b>. '
+    f'The revenue comparison highlights how the two companies have '
+    f'evolved financially over time, while the stock price chart shows '
+    f'how their market prices changed across the available trading period.'
+    f'<br><br>'
+    f'Together, these visualizations demonstrate how financial data can '
+    f'be transformed into an interactive dashboard for easier analysis '
+    f'and exploration.'
+    f'</div>'
+    f'</div>',
+    unsafe_allow_html=True
+)
 
 # =====================================================
 # FOOTER
 # =====================================================
 
 st.markdown(
-    """
-    <div class="footer">
-        Built with Python • Pandas • Plotly • Streamlit
-        <br>
-        Tesla vs GameStop Financial Analysis
-    </div>
-    """,
+    '<div class="footer">'
+    'Built with Python • Pandas • Plotly • Streamlit'
+    '<br>'
+    'Tesla vs GameStop Financial Analysis'
+    '</div>',
     unsafe_allow_html=True
 )
