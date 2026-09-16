@@ -8,19 +8,24 @@ st.set_page_config(
     layout="wide"
 )
 
+# -----------------------------
 # Load data
+# -----------------------------
+
 stock_comparison = pd.read_csv("stock_comparison.csv")
 revenue_comparison = pd.read_csv("revenue_comparison.csv")
 
-# Convert Date to datetime
+# Convert stock Date to datetime
 stock_comparison["Date"] = pd.to_datetime(stock_comparison["Date"])
-revenue_comparison["Date"] = pd.to_datetime(revenue_comparison["Date"])
 
-# Sort data by date
+# Sort data
 stock_comparison = stock_comparison.sort_values("Date").reset_index(drop=True)
-revenue_comparison = revenue_comparison.sort_values("Date").reset_index(drop=True)
+revenue_comparison = revenue_comparison.sort_values("Year").reset_index(drop=True)
 
+# -----------------------------
 # Page title
+# -----------------------------
+
 st.title("Tesla vs GameStop Stock Analysis")
 
 st.write(
@@ -93,7 +98,7 @@ st.plotly_chart(
 
 fig_revenue = px.line(
     revenue_comparison,
-    x="Date",
+    x="Year",
     y=["Tesla Revenue", "GameStop Revenue"],
     title="Tesla vs GameStop Revenue",
     color_discrete_map={
@@ -103,7 +108,7 @@ fig_revenue = px.line(
 )
 
 fig_revenue.update_layout(
-    xaxis_title="Date",
+    xaxis_title="Year",
     yaxis_title="Revenue (USD)",
     template="plotly_white"
 )
@@ -130,7 +135,7 @@ revenue_growth["GameStop Revenue Growth (%)"] = (
 
 fig_growth = px.line(
     revenue_growth,
-    x="Date",
+    x="Year",
     y=[
         "Tesla Revenue Growth (%)",
         "GameStop Revenue Growth (%)"
@@ -143,7 +148,7 @@ fig_growth = px.line(
 )
 
 fig_growth.update_layout(
-    xaxis_title="Date",
+    xaxis_title="Year",
     yaxis_title="Revenue Growth (%)",
     template="plotly_white"
 )
