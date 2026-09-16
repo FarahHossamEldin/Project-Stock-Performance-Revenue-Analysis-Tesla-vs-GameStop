@@ -27,7 +27,6 @@ st.markdown("""
     color: white;
 }
 
-/* Make all normal text white */
 p, span, label {
     color: white !important;
 }
@@ -133,7 +132,7 @@ div[data-testid="stPlotlyChart"] {
     border-radius: 18px;
 
     padding: 20px;
-    min-height: 125px;
+    min-height: 145px;
 
     box-shadow:
         0px 12px 30px rgba(0,0,0,0.30);
@@ -211,6 +210,7 @@ div[data-testid="stPlotlyChart"] {
 </style>
 """, unsafe_allow_html=True)
 
+
 # =====================================================
 # LOAD DATA
 # =====================================================
@@ -234,6 +234,7 @@ revenue_comparison = (
     .reset_index(drop=True)
 )
 
+
 # =====================================================
 # REVENUE GROWTH
 # =====================================================
@@ -247,6 +248,7 @@ revenue_growth["Tesla Revenue Growth (%)"] = (
 revenue_growth["GameStop Revenue Growth (%)"] = (
     revenue_growth["GameStop Revenue"].pct_change() * 100
 )
+
 
 # =====================================================
 # HEADER
@@ -264,46 +266,148 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# =====================================================
+# FILTERS
+# =====================================================
+
+st.markdown(
+    '<div class="section-title">🎛️ Dashboard Filters</div>',
+    unsafe_allow_html=True
+)
+
+filter_col1, filter_col2 = st.columns(2)
+
+with filter_col1:
+
+    period = st.selectbox(
+        "Stock Price Period",
+        [
+            "All Time",
+            "Last 5 Years",
+            "Last 3 Years",
+            "Last 1 Year"
+        ]
+    )
+
+with filter_col2:
+
+    company_filter = st.selectbox(
+        "Company",
+        [
+            "Both",
+            "Tesla",
+            "GameStop"
+        ]
+    )
+
+
+# =====================================================
+# APPLY STOCK FILTER
+# =====================================================
+
+max_date = stock_comparison["Date"].max()
+
+if period == "Last 5 Years":
+    start_date = max_date - pd.DateOffset(years=5)
+    filtered_stock = stock_comparison[
+        stock_comparison["Date"] >= start_date
+    ]
+
+elif period == "Last 3 Years":
+    start_date = max_date - pd.DateOffset(years=3)
+    filtered_stock = stock_comparison[
+        stock_comparison["Date"] >= start_date
+    ]
+
+elif period == "Last 1 Year":
+    start_date = max_date - pd.DateOffset(years=1)
+    filtered_stock = stock_comparison[
+        stock_comparison["Date"] >= start_date
+    ]
+
+else:
+    filtered_stock = stock_comparison.copy()
+
+
 # =====================================================
 # KPI CARDS
 # =====================================================
 
-latest_stock = stock_comparison.iloc[-1]
+latest_stock = filtered_stock.iloc[-1]
+first_stock = filtered_stock.iloc[0]
+
 latest_revenue = revenue_comparison.iloc[-1]
 
 latest_stock_date = latest_stock["Date"].strftime("%Y-%m-%d")
 latest_revenue_year = int(latest_revenue["Year"])
 
+
+# Stock performance
+
+tesla_stock_change = (
+    (latest_stock["Tesla Close"] /
+     first_stock["Tesla Close"]) - 1
+) * 100
+
+gamestop_stock_change = (
+    (latest_stock["GameStop Close"] /
+     first_stock["GameStop Close"]) - 1
+) * 100
+
+
+# =====================================================
+# KPI SECTION
+# =====================================================
+
+st.markdown(
+    '<div class="section-title">📌 Current Snapshot</div>',
+    unsafe_allow_html=True
+)
+
 col1, col2, col3, col4 = st.columns(4)
 
+
 with col1:
+
     st.metric(
-        label="🚗 Tesla Stock Price — Latest",
-        value=f"${latest_stock['Tesla Close']:.2f}"
+        label="🚗 Tesla Latest Price",
+        value=f"${latest_stock['Tesla Close']:.2f}",
+        delta=f"{tesla_stock_change:+.2f}%"
     )
+
 
 with col2:
+
     st.metric(
-        label="🎮 GameStop Stock Price — Latest",
-        value=f"${latest_stock['GameStop Close']:.2f}"
+        label="🎮 GameStop Latest Price",
+        value=f"${latest_stock['GameStop Close']:.2f}",
+        delta=f"{gamestop_stock_change:+.2f}%"
     )
 
+
 with col3:
+
     st.metric(
         label=f"💰 Tesla Revenue — {latest_revenue_year}",
         value=f"${latest_revenue['Tesla Revenue']:,.0f}"
     )
 
+
 with col4:
+
     st.metric(
         label=f"💰 GameStop Revenue — {latest_revenue_year}",
         value=f"${latest_revenue['GameStop Revenue']:,.0f}"
     )
 
+
 st.caption(
-    f"Stock prices shown for the latest available date: {latest_stock_date} | "
-    f"Revenue figures shown for the latest available year: {latest_revenue_year}"
+    f"Stock performance is measured from the beginning to the end "
+    f"of the selected period. Latest stock date: {latest_stock_date} | "
+    f"Latest revenue year: {latest_revenue_year}"
 )
+
 
 # =====================================================
 # STOCK PRICE COMPARISON
@@ -314,15 +418,26 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+stock_columns = []
+
+if company_filter in ["Both", "Tesla"]:
+    stock_columns.append("Tesla Close")
+
+if company_filter in ["Both", "GameStop"]:
+    stock_columns.append("GameStop Close")
+
+
 fig_stock = px.line(
-    stock_comparison,
+    filtered_stock,
     x="Date",
-    y=["Tesla Close", "GameStop Close"],
+    y=stock_columns,
     color_discrete_map={
         "Tesla Close": "#00BFFF",
         "GameStop Close": "#FF6B6B"
     }
 )
+
 
 fig_stock.update_traces(
     line=dict(width=3),
@@ -333,6 +448,7 @@ fig_stock.update_traces(
         "<extra></extra>"
     )
 )
+
 
 fig_stock.update_layout(
     template="plotly_dark",
@@ -368,6 +484,7 @@ fig_stock.update_layout(
     )
 )
 
+
 st.plotly_chart(
     fig_stock,
     width="stretch",
@@ -377,11 +494,13 @@ st.plotly_chart(
     }
 )
 
+
 # =====================================================
 # REVENUE + GROWTH
 # =====================================================
 
 col_left, col_right = st.columns(2)
+
 
 # =====================================================
 # REVENUE GRAPH
@@ -456,6 +575,7 @@ with col_left:
             "displaylogo": False
         }
     )
+
 
 # =====================================================
 # REVENUE GROWTH GRAPH
@@ -534,6 +654,7 @@ with col_right:
         }
     )
 
+
 # =====================================================
 # KEY INSIGHTS
 # =====================================================
@@ -542,6 +663,9 @@ st.markdown(
     '<div class="section-title">💡 Key Insights</div>',
     unsafe_allow_html=True
 )
+
+
+# Average growth
 
 tesla_avg_growth = (
     revenue_growth["Tesla Revenue Growth (%)"]
@@ -555,12 +679,16 @@ gamestop_avg_growth = (
     .mean()
 )
 
+
+# Overall revenue change
+
 tesla_revenue_change = (
     (
         latest_revenue["Tesla Revenue"]
         / revenue_comparison["Tesla Revenue"].iloc[0]
     ) - 1
 ) * 100
+
 
 gamestop_revenue_change = (
     (
@@ -569,55 +697,109 @@ gamestop_revenue_change = (
     ) - 1
 ) * 100
 
+
+# Highest growth year
+
+tesla_highest_growth_row = revenue_growth.loc[
+    revenue_growth["Tesla Revenue Growth (%)"].idxmax()
+]
+
+gamestop_highest_growth_row = revenue_growth.loc[
+    revenue_growth["GameStop Revenue Growth (%)"].idxmax()
+]
+
+
+tesla_highest_growth = (
+    tesla_highest_growth_row["Tesla Revenue Growth (%)"]
+)
+
+gamestop_highest_growth = (
+    gamestop_highest_growth_row["GameStop Revenue Growth (%)"]
+)
+
+
+tesla_highest_growth_year = int(
+    tesla_highest_growth_row["Year"]
+)
+
+gamestop_highest_growth_year = int(
+    gamestop_highest_growth_row["Year"]
+)
+
+
+# =====================================================
+# INSIGHT CARDS
+# =====================================================
+
 insight1, insight2, insight3, insight4 = st.columns(4)
 
+
 with insight1:
+
     st.markdown(
         f'<div class="insight-card">'
-        f'<div class="insight-title">📈 Tesla Avg. Growth</div>'
+        f'<div class="insight-title">📈 Tesla Avg. Revenue Growth</div>'
         f'<div class="insight-text">'
-        f'Tesla recorded an average period-over-period revenue growth '
-        f'of <b>{tesla_avg_growth:.2f}%</b> across the available data.'
+        f'Tesla revenue grew by an average of '
+        f'<b>{tesla_avg_growth:.2f}% per period</b> '
+        f'across the available data.'
+        f'<br><br>'
+        f'<small>Average of year-over-year growth rates.</small>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True
     )
+
 
 with insight2:
+
     st.markdown(
         f'<div class="insight-card">'
-        f'<div class="insight-title">🎮 GameStop Avg. Growth</div>'
+        f'<div class="insight-title">🎮 GameStop Avg. Revenue Growth</div>'
         f'<div class="insight-text">'
-        f'GameStop recorded an average period-over-period revenue growth '
-        f'of <b>{gamestop_avg_growth:.2f}%</b> across the available data.'
+        f'GameStop revenue grew by an average of '
+        f'<b>{gamestop_avg_growth:.2f}% per period</b> '
+        f'across the available data.'
+        f'<br><br>'
+        f'<small>Average of year-over-year growth rates.</small>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True
     )
+
 
 with insight3:
+
     st.markdown(
         f'<div class="insight-card">'
-        f'<div class="insight-title">🚗 Tesla Revenue Change</div>'
+        f'<div class="insight-title">🚗 Tesla Overall Revenue Change</div>'
         f'<div class="insight-text">'
-        f'Tesla revenue changed by <b>{tesla_revenue_change:.2f}%</b> '
+        f'Tesla revenue changed by '
+        f'<b>{tesla_revenue_change:.2f}%</b> '
         f'from the first to the latest available year.'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True
     )
 
+
 with insight4:
+
     st.markdown(
         f'<div class="insight-card">'
-        f'<div class="insight-title">🎮 GameStop Revenue Change</div>'
+        f'<div class="insight-title">🏆 Highest Revenue Growth</div>'
         f'<div class="insight-text">'
-        f'GameStop revenue changed by <b>{gamestop_revenue_change:.2f}%</b> '
-        f'from the first to the latest available year.'
+        f'Tesla recorded its highest growth of '
+        f'<b>{tesla_highest_growth:.2f}%</b> '
+        f'in <b>{tesla_highest_growth_year}</b>.<br><br>'
+        f'GameStop recorded '
+        f'<b>{gamestop_highest_growth:.2f}%</b> '
+        f'in <b>{gamestop_highest_growth_year}</b>.'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True
     )
+
 
 # =====================================================
 # CONCLUSION
@@ -628,28 +810,43 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 st.markdown(
     f'<div class="conclusion-box">'
     f'<div class="conclusion-title">'
     f'What does the analysis show?'
     f'</div>'
     f'<div class="conclusion-text">'
-    f'The dashboard provides a combined view of stock price movements, '
+
+    f'The analysis provides a combined view of stock price movements, '
     f'revenue trends, and revenue growth for Tesla and GameStop. '
-    f'Across the available revenue data, Tesla shows an average '
-    f'period-over-period growth of <b>{tesla_avg_growth:.2f}%</b>, '
-    f'while GameStop shows <b>{gamestop_avg_growth:.2f}%</b>. '
-    f'The revenue comparison highlights how the two companies have '
-    f'evolved financially over time, while the stock price chart shows '
-    f'how their market prices changed across the available trading period.'
+
+    f'Tesla recorded an average period-over-period revenue growth of '
+    f'<b>{tesla_avg_growth:.2f}%</b>, while GameStop recorded '
+    f'<b>{gamestop_avg_growth:.2f}%</b> across the available revenue data. '
+
+    f'The revenue comparison highlights different financial growth '
+    f'patterns between the two companies, while the stock price chart '
+    f'illustrates how their market prices changed over time. '
+
     f'<br><br>'
-    f'Together, these visualizations demonstrate how financial data can '
-    f'be transformed into an interactive dashboard for easier analysis '
-    f'and exploration.'
+
+    f'The comparison also demonstrates that revenue trends and stock '
+    f'price movements represent different aspects of financial performance '
+    f'and should be analyzed together rather than treated as identical measures. '
+
+    f'<br><br>'
+
+    f'Overall, this project demonstrates a complete data analysis workflow: '
+    f'collecting financial data, preparing and transforming datasets, '
+    f'calculating growth metrics, creating interactive visualizations, '
+    f'and presenting insights through a Streamlit dashboard.'
+
     f'</div>'
     f'</div>',
     unsafe_allow_html=True
 )
+
 
 # =====================================================
 # FOOTER
