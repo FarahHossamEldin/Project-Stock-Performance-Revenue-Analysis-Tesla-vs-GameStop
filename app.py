@@ -255,16 +255,12 @@ revenue_comparison = pd.read_csv(
 # DATA PREPARATION
 # =====================================================
 
-# FIX:
-# Streamlit Cloud / newer pandas can detect mixed
-# date formats differently.
-#
-# format="mixed" allows pandas to parse different
-# date representations inside the same column.
+stock_comparison["Date"] = stock_comparison["Date"].apply(
+    lambda x: pd.to_datetime(x, errors="coerce")
+)
 
-stock_comparison["Date"] = pd.to_datetime(
-    stock_comparison["Date"],
-    format="mixed"
+stock_comparison = stock_comparison.dropna(
+    subset=["Date"]
 )
 
 stock_comparison = (
