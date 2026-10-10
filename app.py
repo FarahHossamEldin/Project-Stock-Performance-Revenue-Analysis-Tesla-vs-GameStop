@@ -1,878 +1,1028 @@
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 
 # =========================================================
-# 1. PAGE CONFIGURATION
+# PAGE CONFIGURATION
 # =========================================================
 
 st.set_page_config(
-    page_title="Tesla vs GameStop | Stock & Revenue Analysis",
+    page_title="Tesla vs GameStop | Financial Analysis",
     page_icon="📈",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-TESLA_COLOR = "#1f77b4"
-GAMESTOP_COLOR = "#ff7f0e"
+st.title("Tesla vs GameStop")
+st.subheader("Stock Performance & Revenue Analysis")
+st.markdown(
+    "An interactive comparison of historical stock prices, "
+    "revenue trends, and financial performance."
+)
+
+st.caption(
+    "Data-driven analysis | Python · Pandas · Plotly · Streamlit"
+)
+
+# =========================================================
+# THEME / CONSTANTS
+# =========================================================
 
 COLORS = {
-    "Tesla": TESLA_COLOR,
-    "GameStop": GAMESTOP_COLOR
+    "Tesla": "#367BF5",
+    "GameStop": "#F59E0B",
 }
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
     [data-testid="stMetric"] {
         background-color: rgba(128, 128, 128, 0.08);
-        border: 1px solid rgba(128, 128, 128, 0.18);
         padding: 16px;
         border-radius: 12px;
     }
-    .insight-card {
-        padding: 16px;
-        border-radius: 10px;
-        border: 1px solid rgba(128, 128, 128, 0.25);
-        margin-bottom: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================================================
-# 2. DATA LOADING AND CLEANING
+# DATA LOADING
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 
 
-@st.cache_data
 def load_csv(filename):
     path = BASE_DIR / filename
 
     if not path.exists():
         return None
 
-    df = pd.read_csv(path)
-    df.columns = df.columns.str.strip()
+    try:
+        return pd.read_csv(path)
+    except Exception:
+        return None
 
+
+def clean_column_names(df):
+    df = df.copy()
+    df.columns = [
+        str(col).strip().replace("\ufeff", "")
+        for col in df.columns
+    ]
     return df
 
 
-def find_column(df, candidates):
-    """Find a column using case-insensitive matching."""
-    if df is None:
-        return None
+def normalize_name(name):
+    return (
+        str(name).lower()
+        .replace(" ", "")
+        .replace("_", "")
+        .replace("-", "")
+        .replace(".", "")
+        .replace("(", "")
+        .replace(")", "")
+    )
 
-    lookup = {str(c).strip().lower(): c for c in df.columns}
 
-    for candidate in candidates:
-        if candidate.lower() in lookup:
-            return lookup[candidate.lower()]
+def find_date_column(df):
+    for col in df.columns:
+        name = normalize_name(col)
+
+        if name in ["date", "datetime", "timestamp", "period"]:
+            return col
+
+    for col in df.columns:
+        if "date" in normalize_name(col):
+            return col
 
     return None
 
 
+def parse_dates(series):
+    # Handles mixed date formats and timezone differences.
+    parsed = pd.to_datetime(
+        series.astype(str).str.strip(),
+        errors="coerce",
+        format="mixed",
+        utc=True
+    )
+
+    return parsed.dt.tz_convert(None)
+
+
 def clean_numeric(series):
-    """Convert numbers stored as strings into numeric values."""
-    return pd.to_numeric(
+    cleaned = (
         series.astype(str)
         .str.replace(",", "", regex=False)
         .str.replace("$", "", regex=False)
+        .str.replace("£", "", regex=False)
+        .str.replace("€", "", regex=False)
         .str.replace("%", "", regex=False)
         .str.strip()
-        .replace({"nan": None, "None": None, "": None}),
-        errors="coerce"
     )
 
+    cleaned = cleaned.replace(
+        ["", "nan", "None", "NaN", "-", "—"],
+        np.nan
+    )
 
-def prepare_stock_data(df):
-    if df is None:
+    return pd.to_numeric(cleaned, errors="coerce")
+
+
+def find_company_columns(df):
+    """Find wide-format Tesla and GameStop columns."""
+    found = {}
+
+    for col in df.columns:
+        name = normalize_name(col)
+
+        if "tesla" in name or name in ["tsla", "tslaclose"]:
+            found["Tesla"] = col
+
+        elif (
+            "gamestop" in name
+            or name in ["gme", "gm e", "gmec​​lose"]
+        ):
+            found["GameStop"] = col
+
+    return found
+
+
+def find_metric_column(df, metric):
+    """Find common stock-price or revenue column names."""
+    candidates = []
+
+    for col in df.columns:
+        name = normalize_name(col)
+
+        if metric == "stock":
+            if any(
+                word in name
+                for word in [
+                    "close", "stockprice", "shareprice",
+                    "price", "adjclose"
+                ]
+            ):
+                candidates.append(col)
+
+        elif metric == "revenue":
+            if "revenue" in name or "sales" in name:
+                candidates.append(col)
+
+    return candidates[0] if candidates else None
+
+
+def prepare_data(df, metric):
+    """
+    Converts common wide or long CSV layouts into:
+    Date, Tesla, GameStop
+    """
+    if df is None or df.empty:
         return None
 
-    date_col = find_column(
-        df, ["Date", "Datetime", "Year", "Period"]
-    )
-    tesla_col = find_column(
-        df, ["Tesla Close", "TSLA Close", "Tesla Stock Price",
-             "TSLA", "Tesla"]
-    )
-    game_col = find_column(
-        df, ["GameStop Close", "GME Close", "GameStop Stock Price",
-             "GME", "GameStop"]
-    )
+    df = clean_column_names(df)
 
-    if not all([date_col, tesla_col, game_col]):
+    date_col = find_date_column(df)
+
+    if date_col is None:
+        st.warning(
+            f"Could not identify a date column in the {metric} dataset."
+        )
         return None
 
-    result = df[[date_col, tesla_col, game_col]].copy()
-    result.columns = ["Date", "Tesla", "GameStop"]
+    df["__date__"] = parse_dates(df[date_col])
+    df = df.dropna(subset=["__date__"]).copy()
 
-result["Date"] = pd.to_datetime(
-    result["Date"],
-    errors="coerce",
-    format="mixed",
-    utc=True
-).dt.tz_convert(None)
-
-    for col in ["Tesla", "GameStop"]:
-        result[col] = clean_numeric(result[col])
-
-    result = (
-        result.dropna(subset=["Date"])
-        .sort_values("Date")
-        .drop_duplicates(subset=["Date"])
-        .reset_index(drop=True)
-    )
-
-    return result if not result.empty else None
-
-
-def prepare_revenue_data(df):
-    if df is None:
+    if df.empty:
+        st.warning(
+            f"No valid dates were found in the {metric} dataset."
+        )
         return None
 
-    date_col = find_column(
-        df, ["Date", "Year", "Fiscal Year", "Period"]
-    )
-    tesla_col = find_column(
-        df, ["Tesla Revenue", "Tesla", "TSLA Revenue"]
-    )
-    game_col = find_column(
-        df, ["GameStop Revenue", "GameStop", "GME Revenue"]
-    )
+    company_cols = find_company_columns(df)
 
-    if not all([date_col, tesla_col, game_col]):
-        return None
+    # Wide format: separate columns for Tesla and GameStop.
+    if "Tesla" in company_cols and "GameStop" in company_cols:
+        result = pd.DataFrame({
+            "Date": df["__date__"],
+            "Tesla": clean_numeric(df[company_cols["Tesla"]]),
+            "GameStop": clean_numeric(df[company_cols["GameStop"]]),
+        })
 
-    result = df[[date_col, tesla_col, game_col]].copy()
-    result.columns = ["Date", "Tesla", "GameStop"]
+    else:
+        # Long format: one company column and one metric column.
+        company_col = None
 
-    # Support both year-only values and full dates.
-    result["Date"] = pd.to_datetime(
-        result["Date"].astype(str).str.strip(),
-        errors="coerce"
-    )
+        for col in df.columns:
+            name = normalize_name(col)
 
-    for col in ["Tesla", "GameStop"]:
-        result[col] = clean_numeric(result[col])
+            if name in [
+                "company", "stock", "ticker", "symbol",
+                "companyname", "name"
+            ]:
+                company_col = col
+                break
 
-    result = (
-        result.dropna(subset=["Date"])
-        .sort_values("Date")
-        .drop_duplicates(subset=["Date"])
-        .reset_index(drop=True)
-    )
+        metric_col = find_metric_column(df, metric)
 
-    return result if not result.empty else None
+        if company_col is None or metric_col is None:
+            # Try using the two most likely numeric columns
+            # only when company columns can be identified.
+            st.warning(
+                f"Could not recognize the {metric} data layout. "
+                "Expected separate Tesla and GameStop columns, "
+                "or company/ticker and metric columns."
+            )
+            return None
+
+        labels = df[company_col].astype(str).str.lower()
+
+        company_names = np.select(
+            [
+                labels.str.contains("tesla")
+                | labels.str.fullmatch("tsla"),
+
+                labels.str.contains("gamestop")
+                | labels.str.fullmatch("gme"),
+            ],
+            ["Tesla", "GameStop"],
+            default=""
+        )
+
+        long_df = pd.DataFrame({
+            "Date": df["__date__"],
+            "Company": company_names,
+            "Value": clean_numeric(df[metric_col]),
+        })
+
+        long_df = long_df[long_df["Company"] != ""]
+
+        if long_df.empty:
+            st.warning(
+                f"No Tesla or GameStop records found in {metric} data."
+            )
+            return None
+
+        result = long_df.pivot_table(
+            index="Date",
+            columns="Company",
+            values="Value",
+            aggfunc="last"
+        ).reset_index()
+
+        for company in ["Tesla", "GameStop"]:
+            if company not in result.columns:
+                result[company] = np.nan
+
+        result = result[["Date", "Tesla", "GameStop"]]
+
+    result = result.replace([np.inf, -np.inf], np.nan)
+    result = result.dropna(subset=["Tesla", "GameStop"], how="all")
+    result = result.sort_values("Date").drop_duplicates("Date")
+
+    return result.reset_index(drop=True)
 
 
 # =========================================================
-# 3. LOAD PROJECT FILES
+# LOAD AVAILABLE DATASETS
 # =========================================================
 
-raw_stock = load_csv("stock_comparison.csv")
-raw_revenue = load_csv("revenue_comparison.csv")
+stock_raw = load_csv("stock_comparison.csv")
+revenue_raw = load_csv("revenue_comparison.csv")
 
-stock = prepare_stock_data(raw_stock)
-revenue = prepare_revenue_data(raw_revenue)
+# Optional fallback file, if the individual files are absent.
+combined_raw = load_csv("comparison.csv")
 
-if stock is None:
+if stock_raw is None and combined_raw is not None:
+    stock_raw = combined_raw
+
+if revenue_raw is None and combined_raw is not None:
+    revenue_raw = combined_raw
+
+stock = prepare_data(stock_raw, "stock")
+revenue = prepare_data(revenue_raw, "revenue")
+
+if stock is None and revenue is None:
     st.error(
-        "Could not prepare stock data. Check stock_comparison.csv "
-        "and confirm it contains Date, Tesla Close, and GameStop Close "
-        "(or equivalent supported column names)."
+        "The dashboard could not load usable data. "
+        "Please check that stock_comparison.csv and "
+        "revenue_comparison.csv exist in the same folder as app.py "
+        "and contain Date, Tesla, and GameStop columns."
     )
     st.stop()
-
-if revenue is None:
-    st.error(
-        "Could not prepare revenue data. Check revenue_comparison.csv "
-        "and confirm it contains Date/Year, Tesla Revenue, and "
-        "GameStop Revenue."
-    )
-    st.stop()
-
-# Restrict calculations and charts to valid numeric observations.
-stock_valid = stock.dropna(subset=["Tesla", "GameStop"]).copy()
-revenue_valid = revenue.dropna(subset=["Tesla", "GameStop"]).copy()
-
-if stock_valid.empty or revenue_valid.empty:
-    st.error("The CSV files do not contain enough valid numeric data.")
-    st.stop()
-
-stock_valid["Year"] = stock_valid["Date"].dt.year
-revenue_valid["Year"] = revenue_valid["Date"].dt.year
-
-stock_valid["Tesla Return %"] = (
-    stock_valid["Tesla"].pct_change() * 100
-)
-stock_valid["GameStop Return %"] = (
-    stock_valid["GameStop"].pct_change() * 100
-)
-
-revenue_valid["Tesla Growth %"] = (
-    revenue_valid["Tesla"].pct_change() * 100
-)
-revenue_valid["GameStop Growth %"] = (
-    revenue_valid["GameStop"].pct_change() * 100
-)
-
 
 # =========================================================
-# 4. HELPER FUNCTIONS
+# SIDEBAR FILTERS
+# =========================================================
+
+available_dates = []
+
+if stock is not None:
+    available_dates.extend(stock["Date"].tolist())
+
+if revenue is not None:
+    available_dates.extend(revenue["Date"].tolist())
+
+min_date = min(available_dates)
+max_date = max(available_dates)
+
+st.sidebar.header("Dashboard Filters")
+
+date_range = st.sidebar.date_input(
+    "Select analysis period",
+    value=(min_date.date(), max_date.date()),
+    min_value=min_date.date(),
+    max_value=max_date.date()
+)
+
+if isinstance(date_range, (tuple, list)) and len(date_range) == 2:
+    start_date = pd.Timestamp(date_range[0])
+    end_date = (
+        pd.Timestamp(date_range[1])
+        + pd.Timedelta(days=1)
+        - pd.Timedelta(microseconds=1)
+    )
+else:
+    start_date = pd.Timestamp(date_range)
+    end_date = start_date + pd.Timedelta(days=1)
+
+if stock is not None:
+    stock_filtered = stock[
+        stock["Date"].between(start_date, end_date)
+    ].copy()
+else:
+    stock_filtered = None
+
+if revenue is not None:
+    revenue_filtered = revenue[
+        revenue["Date"].between(start_date, end_date)
+    ].copy()
+else:
+    revenue_filtered = None
+
+if (
+    stock_filtered is not None
+    and stock_filtered.empty
+    and revenue_filtered is not None
+    and revenue_filtered.empty
+):
+    st.warning("No data is available for the selected period.")
+    st.stop()
+
+# =========================================================
+# HELPER FUNCTIONS
 # =========================================================
 
 def money(value, decimals=2):
     if pd.isna(value):
         return "N/A"
+
     return f"${value:,.{decimals}f}"
 
 
-def percentage(value):
+def compact_money(value):
     if pd.isna(value):
         return "N/A"
-    return f"{value:+.2f}%"
+
+    value = float(value)
+    absolute = abs(value)
+
+    if absolute >= 1_000_000_000:
+        return f"${value / 1_000_000_000:,.2f}B"
+
+    if absolute >= 1_000_000:
+        return f"${value / 1_000_000:,.2f}M"
+
+    if absolute >= 1_000:
+        return f"${value / 1_000:,.2f}K"
+
+    return f"${value:,.2f}"
 
 
-def total_return(series):
-    """Price change from first to last observation, not dividends."""
-    series = series.dropna()
+def growth_pct(series):
+    values = series.dropna()
 
-    if len(series) < 2 or series.iloc[0] == 0:
-        return float("nan")
+    if len(values) < 2:
+        return np.nan
 
-    return (series.iloc[-1] / series.iloc[0] - 1) * 100
+    first = values.iloc[0]
+    last = values.iloc[-1]
 
+    if first == 0:
+        return np.nan
 
-def revenue_growth(series):
-    """First-to-last revenue change, not annualized growth."""
-    series = series.dropna()
-
-    if len(series) < 2 or series.iloc[0] == 0:
-        return float("nan")
-
-    return (series.iloc[-1] / series.iloc[0] - 1) * 100
+    return (last - first) / abs(first) * 100
 
 
-def make_line_chart(
-    df, x, columns, title, y_title, percent=False
-):
-    fig = go.Figure()
+def calculate_correlation(data):
+    if data is None:
+        return np.nan
 
-    for company in columns:
-        fig.add_trace(
-            go.Scatter(
-                x=df[x],
-                y=df[company],
-                name=company,
-                mode="lines",
-                line=dict(color=COLORS[company], width=2.5),
-                connectgaps=False,
-                hovertemplate=(
-                    "%{x|%Y-%m-%d}<br>"
-                    + company
-                    + ": %{y:,.2f}"
-                    + ("%" if percent else "")
-                    + "<extra></extra>"
-                )
-            )
-        )
+    pair = data[["Tesla", "GameStop"]].dropna()
+
+    if len(pair) < 2:
+        return np.nan
+
+    return pair["Tesla"].corr(pair["GameStop"])
+
+
+def show_line_chart(data, title, y_title, normalize=False):
+    plot_data = data.melt(
+        id_vars="Date",
+        value_vars=["Tesla", "GameStop"],
+        var_name="Company",
+        value_name="Value"
+    ).dropna()
+
+    if normalize:
+        normalized = []
+
+        for company in ["Tesla", "GameStop"]:
+            company_data = plot_data[
+                plot_data["Company"] == company
+            ].sort_values("Date").copy()
+
+            if not company_data.empty:
+                first_value = company_data["Value"].iloc[0]
+
+                if first_value != 0:
+                    company_data["Value"] = (
+                        company_data["Value"] / first_value
+                    ) * 100
+
+                normalized.append(company_data)
+
+        if normalized:
+            plot_data = pd.concat(normalized, ignore_index=True)
+
+    fig = px.line(
+        plot_data,
+        x="Date",
+        y="Value",
+        color="Company",
+        color_discrete_map=COLORS,
+        title=title,
+        markers=False,
+        template="plotly_white"
+    )
 
     fig.update_layout(
-        title=title,
-        xaxis_title="Date",
-        yaxis_title=y_title,
-        template="plotly_white",
+        height=450,
         hovermode="x unified",
         legend_title_text="Company",
-        margin=dict(l=15, r=15, t=60, b=15)
+        margin=dict(l=15, r=15, t=65, b=15),
+        xaxis_title="Date",
+        yaxis_title=y_title
     )
 
     return fig
 
 
 # =========================================================
-# 5. SIDEBAR FILTERS
+# EXECUTIVE SUMMARY
 # =========================================================
-
-st.sidebar.title("📊 Dashboard Controls")
-st.sidebar.caption("Tesla vs GameStop")
-
-min_year = int(stock_valid["Year"].min())
-max_year = int(stock_valid["Year"].max())
-
-selected_years = st.sidebar.slider(
-    "Stock analysis period",
-    min_value=min_year,
-    max_value=max_year,
-    value=(min_year, max_year),
-    step=1
-)
-
-stock_filtered = stock_valid[
-    stock_valid["Year"].between(
-        selected_years[0], selected_years[1]
-    )
-].copy()
-
-if stock_filtered.empty:
-    st.warning("No stock data available for this period.")
-    st.stop()
-
-rev_min_year = int(revenue_valid["Year"].min())
-rev_max_year = int(revenue_valid["Year"].max())
-
-revenue_years = st.sidebar.slider(
-    "Revenue analysis period",
-    min_value=rev_min_year,
-    max_value=rev_max_year,
-    value=(rev_min_year, rev_max_year),
-    step=1
-)
-
-revenue_filtered = revenue_valid[
-    revenue_valid["Year"].between(
-        revenue_years[0], revenue_years[1]
-    )
-].copy()
-
-if revenue_filtered.empty:
-    st.warning("No revenue data available for this period.")
-    st.stop()
-
-
-# =========================================================
-# 6. DASHBOARD HEADER
-# =========================================================
-
-st.title("📈 Tesla vs GameStop")
-st.subheader("Stock Performance & Revenue Analysis")
-
-st.markdown(
-    """
-    An interactive comparison of two very different companies:
-    **Tesla**, an electric vehicle and clean-energy company, and
-    **GameStop**, a video-game retailer.
-
-    Explore historical stock prices, relative performance, revenue
-    trends, and revenue growth to understand how their financial
-    trajectories compare.
-    """
-)
-
-st.caption(
-    f"Stock period: {selected_years[0]}–{selected_years[1]} "
-    f"| Revenue period: {revenue_years[0]}–{revenue_years[1]}"
-)
-
-st.divider()
-
-
-# =========================================================
-# 7. EXECUTIVE SUMMARY / KPI CARDS
-# =========================================================
-
-tesla_stock_return = total_return(stock_filtered["Tesla"])
-game_stock_return = total_return(stock_filtered["GameStop"])
-
-tesla_revenue_growth = revenue_growth(revenue_filtered["Tesla"])
-game_revenue_growth = revenue_growth(revenue_filtered["GameStop"])
-
-tesla_latest_price = stock_filtered["Tesla"].iloc[-1]
-game_latest_price = stock_filtered["GameStop"].iloc[-1]
-
-tesla_latest_revenue = revenue_filtered["Tesla"].iloc[-1]
-game_latest_revenue = revenue_filtered["GameStop"].iloc[-1]
 
 st.header("Executive Summary")
 
-k1, k2, k3, k4 = st.columns(4)
+if stock_filtered is not None and not stock_filtered.empty:
+    stock_metrics = {}
 
-k1.metric(
-    "Tesla Stock Change",
-    percentage(tesla_stock_return),
-    help="Change from the first to the last available stock price "
-         "in the selected period. Excludes dividends."
-)
+    for company in ["Tesla", "GameStop"]:
+        values = stock_filtered[company].dropna()
 
-k2.metric(
-    "GameStop Stock Change",
-    percentage(game_stock_return),
-    help="Change from the first to the last available stock price "
-         "in the selected period. Excludes dividends."
-)
+        stock_metrics[company] = {
+            "latest": values.iloc[-1] if len(values) else np.nan,
+            "first": values.iloc[0] if len(values) else np.nan,
+            "growth": growth_pct(stock_filtered[company]),
+            "high": values.max() if len(values) else np.nan,
+            "low": values.min() if len(values) else np.nan,
+        }
 
-k3.metric(
-    "Tesla Revenue Change",
-    percentage(tesla_revenue_growth),
-    help="Change from the first to the last available revenue "
-         "observation in the selected period."
-)
+    c1, c2, c3, c4 = st.columns(4)
 
-k4.metric(
-    "GameStop Revenue Change",
-    percentage(game_revenue_growth),
-    help="Change from the first to the last available revenue "
-         "observation in the selected period."
-)
+    c1.metric(
+        "Tesla Latest Price",
+        money(stock_metrics["Tesla"]["latest"])
+    )
 
-st.caption(
-    "Stock changes are price changes, not total shareholder returns. "
-    "Revenue changes compare the endpoints of the selected period."
-)
+    c2.metric(
+        "GameStop Latest Price",
+        money(stock_metrics["GameStop"]["latest"])
+    )
 
+    c3.metric(
+        "Tesla Price Change",
+        f'{stock_metrics["Tesla"]["growth"]:.2f}%'
+        if pd.notna(stock_metrics["Tesla"]["growth"])
+        else "N/A"
+    )
+
+    c4.metric(
+        "GameStop Price Change",
+        f'{stock_metrics["GameStop"]["growth"]:.2f}%'
+        if pd.notna(stock_metrics["GameStop"]["growth"])
+        else "N/A"
+    )
+
+if revenue_filtered is not None and not revenue_filtered.empty:
+    st.markdown("#### Revenue Overview")
+
+    rc1, rc2 = st.columns(2)
+
+    for col, company in zip([rc1, rc2], ["Tesla", "GameStop"]):
+        values = revenue_filtered[company].dropna()
+
+        latest_revenue = values.iloc[-1] if len(values) else np.nan
+
+        col.metric(
+            f"{company} Latest Revenue",
+            compact_money(latest_revenue)
+        )
 
 # =========================================================
-# 8. STOCK PERFORMANCE
+# STOCK PERFORMANCE
 # =========================================================
 
 st.divider()
-st.header("1. Stock Market Performance")
+st.header("1. Stock Performance")
 
-st.markdown(
-    "Compare historical closing prices and relative growth. "
-    "Stock prices are shown in USD."
-)
-
-tab1, tab2, tab3 = st.tabs([
-    "Closing Prices",
-    "Indexed Performance",
-    "Daily Returns"
-])
-
-with tab1:
-    fig = make_line_chart(
-        stock_filtered,
-        "Date",
-        ["Tesla", "GameStop"],
-        "Historical Closing Stock Prices",
-        "Closing Price (USD)"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.info(
-        "Interpretation: closing-price levels are useful for tracking "
-        "each stock over time, but they do not directly measure which "
-        "investment performed better because the stocks started at "
-        "different prices."
+if stock_filtered is None or stock_filtered.empty:
+    st.info("Stock data is not available for this period.")
+else:
+    st.markdown(
+        "Explore how each stock price changed over the selected period."
     )
 
-with tab2:
-    indexed = stock_filtered[["Date", "Tesla", "GameStop"]].copy()
+    tab1, tab2, tab3 = st.tabs([
+        "Historical Prices",
+        "Normalized Performance",
+        "Price Distribution"
+    ])
+
+    with tab1:
+        st.plotly_chart(
+            show_line_chart(
+                stock_filtered,
+                "Historical Stock Prices",
+                "Stock Price ($)"
+            ),
+            use_container_width=True
+        )
+
+    with tab2:
+        st.caption(
+            "Both stocks start at an index of 100. "
+            "This compares relative change rather than absolute price."
+        )
+
+        st.plotly_chart(
+            show_line_chart(
+                stock_filtered,
+                "Relative Stock Performance (Base = 100)",
+                "Indexed Price",
+                normalize=True
+            ),
+            use_container_width=True
+        )
+
+    with tab3:
+        distribution = stock_filtered.melt(
+            id_vars="Date",
+            value_vars=["Tesla", "GameStop"],
+            var_name="Company",
+            value_name="Price"
+        ).dropna()
+
+        fig = px.box(
+            distribution,
+            x="Company",
+            y="Price",
+            color="Company",
+            color_discrete_map=COLORS,
+            points="outliers",
+            title="Stock Price Distribution",
+            template="plotly_white"
+        )
+
+        fig.update_layout(height=400)
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Stock statistics
+    stats_rows = []
 
     for company in ["Tesla", "GameStop"]:
-        first_price = indexed[company].iloc[0]
+        values = stock_filtered[company].dropna()
 
-        if pd.notna(first_price) and first_price != 0:
-            indexed[company] = (
-                indexed[company] / first_price
-            ) * 100
-        else:
-            indexed[company] = float("nan")
+        stats_rows.append({
+            "Company": company,
+            "Observations": len(values),
+            "First Price": values.iloc[0] if len(values) else np.nan,
+            "Latest Price": values.iloc[-1] if len(values) else np.nan,
+            "Minimum": values.min() if len(values) else np.nan,
+            "Maximum": values.max() if len(values) else np.nan,
+            "Average": values.mean() if len(values) else np.nan,
+            "Price Change (%)": growth_pct(stock_filtered[company])
+        })
 
-    fig = make_line_chart(
-        indexed,
-        "Date",
-        ["Tesla", "GameStop"],
-        "Relative Stock Performance (First Observation = 100)",
-        "Indexed Value"
+    st.subheader("Stock Performance Statistics")
+
+    stats_df = pd.DataFrame(stats_rows)
+
+    st.dataframe(
+        stats_df.style.format({
+            "First Price": "${:,.2f}",
+            "Latest Price": "${:,.2f}",
+            "Minimum": "${:,.2f}",
+            "Maximum": "${:,.2f}",
+            "Average": "${:,.2f}",
+            "Price Change (%)": "{:.2f}%"
+        }, na_rep="N/A"),
+        use_container_width=True,
+        hide_index=True
     )
-
-    fig.add_hline(
-        y=100,
-        line_dash="dash",
-        line_color="gray",
-        annotation_text="Starting baseline = 100"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown(
-        """
-        **How to read this chart**
-
-        - An indexed value of **150** means the stock price is 50%
-          above its starting value in the selected period.
-        - A value of **80** means the price is 20% below its starting value.
-        - Comparing the lines helps identify which stock gained or lost
-          more proportionally, regardless of its original share price.
-        """
-    )
-
-with tab3:
-    returns = stock_filtered[
-        ["Date", "Tesla Return %", "GameStop Return %"]
-    ].melt(
-        id_vars="Date",
-        var_name="Company",
-        value_name="Daily Return (%)"
-    )
-
-    returns["Company"] = returns["Company"].replace({
-        "Tesla Return %": "Tesla",
-        "GameStop Return %": "GameStop"
-    })
-
-    fig = px.line(
-        returns,
-        x="Date",
-        y="Daily Return (%)",
-        color="Company",
-        color_discrete_map=COLORS,
-        title="Daily Percentage Price Changes",
-        template="plotly_white"
-    )
-
-    fig.add_hline(y=0, line_dash="dash", line_color="gray")
-    fig.update_layout(
-        hovermode="x unified",
-        xaxis_title="Date",
-        yaxis_title="Daily Return (%)"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.caption(
-        "Daily returns measure the percentage change from one available "
-        "stock observation to the next. Large spikes indicate unusually "
-        "large price movements, not necessarily a change in business revenue."
-    )
-
 
 # =========================================================
-# 9. REVENUE ANALYSIS
+# REVENUE ANALYSIS
 # =========================================================
 
 st.divider()
 st.header("2. Revenue Analysis")
 
-st.markdown(
-    "Revenue reflects sales generated by the business. It is not the "
-    "same as profit, cash flow, or stock-market performance."
-)
-
-revenue_chart = revenue_filtered.melt(
-    id_vars="Date",
-    value_vars=["Tesla", "GameStop"],
-    var_name="Company",
-    value_name="Revenue"
-)
-
-fig = px.line(
-    revenue_chart,
-    x="Date",
-    y="Revenue",
-    color="Company",
-    color_discrete_map=COLORS,
-    markers=True,
-    title="Historical Revenue Comparison",
-    template="plotly_white"
-)
-
-fig.update_layout(
-    hovermode="x unified",
-    xaxis_title="Year",
-    yaxis_title="Revenue (USD)",
-    legend_title="Company"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-r1, r2 = st.columns(2)
-
-with r1:
-    fig = px.bar(
-        revenue_chart,
-        x="Date",
-        y="Revenue",
-        color="Company",
-        barmode="group",
-        color_discrete_map=COLORS,
-        title="Revenue by Reporting Period",
-        template="plotly_white"
-    )
-    fig.update_layout(
-        xaxis_title="Year",
-        yaxis_title="Revenue (USD)"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-with r2:
-    growth_chart = revenue_filtered[
-        ["Date", "Tesla Growth %", "GameStop Growth %"]
-    ].melt(
+if revenue_filtered is None or revenue_filtered.empty:
+    st.info("Revenue data is not available for this period.")
+else:
+    rev_long = revenue_filtered.melt(
         id_vars="Date",
+        value_vars=["Tesla", "GameStop"],
         var_name="Company",
-        value_name="Revenue Growth (%)"
+        value_name="Revenue"
+    ).dropna()
+
+    rev_long = rev_long.sort_values("Date")
+
+    rtab1, rtab2 = st.tabs([
+        "Revenue Trends",
+        "Revenue Growth"
+    ])
+
+    with rtab1:
+        fig = px.line(
+            rev_long,
+            x="Date",
+            y="Revenue",
+            color="Company",
+            color_discrete_map=COLORS,
+            markers=True,
+            title="Historical Revenue",
+            template="plotly_white"
+        )
+
+        fig.update_layout(
+            height=450,
+            hovermode="x unified",
+            yaxis_title="Revenue ($, as recorded in dataset)",
+            xaxis_title="Date"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.caption(
+            "Revenue units depend on the original dataset. "
+            "Check the source notebook before interpreting the scale."
+        )
+
+    with rtab2:
+        growth_data = rev_long.copy()
+
+        growth_data["Revenue Growth (%)"] = (
+            growth_data.groupby("Company")["Revenue"]
+            .pct_change(fill_method=None) * 100
+        )
+
+        growth_data = growth_data.replace(
+            [np.inf, -np.inf], np.nan
+        ).dropna(subset=["Revenue Growth (%)"])
+
+        if not growth_data.empty:
+            fig = px.bar(
+                growth_data,
+                x="Date",
+                y="Revenue Growth (%)",
+                color="Company",
+                color_discrete_map=COLORS,
+                barmode="group",
+                title="Period-over-Period Revenue Growth",
+                template="plotly_white"
+            )
+
+            fig.update_layout(
+                height=450,
+                yaxis_title="Revenue Growth (%)",
+                xaxis_title="Date"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info(
+                "Not enough consecutive revenue observations "
+                "to calculate growth."
+            )
+
+    revenue_stats = []
+
+    for company in ["Tesla", "GameStop"]:
+        values = revenue_filtered[company].dropna()
+
+        revenue_stats.append({
+            "Company": company,
+            "Observations": len(values),
+            "First Revenue": values.iloc[0] if len(values) else np.nan,
+            "Latest Revenue": values.iloc[-1] if len(values) else np.nan,
+            "Minimum Revenue": values.min() if len(values) else np.nan,
+            "Maximum Revenue": values.max() if len(values) else np.nan,
+            "Revenue Change (%)": growth_pct(revenue_filtered[company])
+        })
+
+    st.subheader("Revenue Summary")
+
+    st.dataframe(
+        pd.DataFrame(revenue_stats).style.format({
+            "First Revenue": "{:,.2f}",
+            "Latest Revenue": "{:,.2f}",
+            "Minimum Revenue": "{:,.2f}",
+            "Maximum Revenue": "{:,.2f}",
+            "Revenue Change (%)": "{:.2f}%"
+        }, na_rep="N/A"),
+        use_container_width=True,
+        hide_index=True
     )
-
-    growth_chart["Company"] = growth_chart["Company"].replace({
-        "Tesla Growth %": "Tesla",
-        "GameStop Growth %": "GameStop"
-    })
-
-    fig = px.bar(
-        growth_chart,
-        x="Date",
-        y="Revenue Growth (%)",
-        color="Company",
-        barmode="group",
-        color_discrete_map=COLORS,
-        title="Period-over-Period Revenue Growth",
-        template="plotly_white"
-    )
-
-    fig.add_hline(y=0, line_dash="dash", line_color="gray")
-    fig.update_layout(
-        xaxis_title="Year",
-        yaxis_title="Revenue Growth (%)"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
 
 # =========================================================
-# 10. DATA SUMMARY TABLES
+# PRICE VS REVENUE
 # =========================================================
 
 st.divider()
-st.header("3. Financial Summary")
+st.header("3. Stock Price vs Revenue")
 
-summary = pd.DataFrame({
-    "Metric": [
-        "First Stock Price (USD)",
-        "Latest Stock Price (USD)",
-        "Stock Price Change (%)",
-        "First Revenue (USD)",
-        "Latest Revenue (USD)",
-        "Revenue Change (%)"
-    ],
-    "Tesla": [
-        stock_filtered["Tesla"].iloc[0],
-        tesla_latest_price,
-        tesla_stock_return,
-        revenue_filtered["Tesla"].iloc[0],
-        tesla_latest_revenue,
-        tesla_revenue_growth
-    ],
-    "GameStop": [
-        stock_filtered["GameStop"].iloc[0],
-        game_latest_price,
-        game_stock_return,
-        revenue_filtered["GameStop"].iloc[0],
-        game_latest_revenue,
-        game_revenue_growth
-    ]
-})
+if (
+    stock_filtered is not None
+    and revenue_filtered is not None
+    and not stock_filtered.empty
+    and not revenue_filtered.empty
+):
+    st.markdown(
+        "Compare stock prices and reported revenue separately "
+        "for each company. Revenue and stock prices have "
+        "different units, so they use separate y-axes."
+    )
 
-with st.expander("View detailed comparison table"):
-    st.dataframe(
-        summary,
-        hide_index=True,
-        use_container_width=True,
-        column_config={
-            "Metric": st.column_config.TextColumn("Metric"),
-            "Tesla": st.column_config.NumberColumn(
-                "Tesla", format="%.2f"
-            ),
-            "GameStop": st.column_config.NumberColumn(
-                "GameStop", format="%.2f"
+    for company in ["Tesla", "GameStop"]:
+        left, right = st.columns(2)
+
+        company_stock = stock_filtered[
+            ["Date", company]
+        ].dropna()
+
+        company_revenue = revenue_filtered[
+            ["Date", company]
+        ].dropna()
+
+        with left:
+            st.subheader(f"{company}: Stock Price")
+
+            fig = px.line(
+                company_stock,
+                x="Date",
+                y=company,
+                title=f"{company} Stock Price",
+                color_discrete_sequence=[COLORS[company]],
+                template="plotly_white"
             )
-        }
-    )
 
-with st.expander("View stock data"):
-    st.dataframe(
-        stock_filtered,
-        hide_index=True,
-        use_container_width=True
-    )
+            fig.update_layout(
+                height=350,
+                xaxis_title="Date",
+                yaxis_title="Price ($)",
+                showlegend=False
+            )
 
-with st.expander("View revenue data"):
-    st.dataframe(
-        revenue_filtered,
-        hide_index=True,
-        use_container_width=True
-    )
+            st.plotly_chart(fig, use_container_width=True)
 
+        with right:
+            st.subheader(f"{company}: Revenue")
+
+            fig = px.line(
+                company_revenue,
+                x="Date",
+                y=company,
+                title=f"{company} Revenue",
+                color_discrete_sequence=[COLORS[company]],
+                markers=True,
+                template="plotly_white"
+            )
+
+            fig.update_layout(
+                height=350,
+                xaxis_title="Date",
+                yaxis_title="Revenue (dataset units)",
+                showlegend=False
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
 # =========================================================
-# 11. AUTOMATED INSIGHTS
+# AUTOMATED INSIGHTS
 # =========================================================
 
 st.divider()
 st.header("4. Key Insights")
 
-# Stock performance insight
-if pd.notna(tesla_stock_return) and pd.notna(game_stock_return):
-    if tesla_stock_return > game_stock_return:
-        stock_winner = "Tesla"
-        stock_gap = tesla_stock_return - game_stock_return
-    elif game_stock_return > tesla_stock_return:
-        stock_winner = "GameStop"
-        stock_gap = game_stock_return - tesla_stock_return
-    else:
-        stock_winner = "Both stocks recorded the same endpoint change"
-        stock_gap = 0
+insight_count = 0
 
-    st.markdown(
-        f"""
-        <div class="insight-card">
-        <b>📈 Relative stock performance</b><br>
-        Over the selected period, <b>{stock_winner}</b> had the stronger
-        endpoint price change. The difference between the two changes
-        was <b>{stock_gap:.2f} percentage points</b>.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+if stock_filtered is not None and not stock_filtered.empty:
+    tsla_growth = growth_pct(stock_filtered["Tesla"])
+    gme_growth = growth_pct(stock_filtered["GameStop"])
 
-# Revenue insight
-if pd.notna(tesla_revenue_growth) and pd.notna(game_revenue_growth):
-    if tesla_revenue_growth > game_revenue_growth:
-        revenue_winner = "Tesla"
-        revenue_gap = tesla_revenue_growth - game_revenue_growth
-    elif game_revenue_growth > tesla_revenue_growth:
-        revenue_winner = "GameStop"
-        revenue_gap = game_revenue_growth - tesla_revenue_growth
-    else:
-        revenue_winner = "Both companies recorded the same endpoint change"
-        revenue_gap = 0
-
-    st.markdown(
-        f"""
-        <div class="insight-card">
-        <b>💰 Revenue trajectory</b><br>
-        <b>{revenue_winner}</b> recorded the stronger change in revenue
-        between the first and last observations of the selected period.
-        The difference was <b>{revenue_gap:.2f} percentage points</b>.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# Revenue direction insight
-tesla_revenue_direction = (
-    "increased" if tesla_revenue_growth > 0
-    else "decreased" if tesla_revenue_growth < 0
-    else "remained unchanged"
-)
-
-game_revenue_direction = (
-    "increased" if game_revenue_growth > 0
-    else "decreased" if game_revenue_growth < 0
-    else "remained unchanged"
-)
-
-st.markdown(
-    f"""
-    <div class="insight-card">
-    <b>🔎 Business growth</b><br>
-    Tesla's revenue {tesla_revenue_direction} by
-    <b>{percentage(tesla_revenue_growth)}</b> across the selected
-    endpoints, while GameStop's revenue {game_revenue_direction} by
-    <b>{percentage(game_revenue_growth)}</b>.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# Volatility insight
-tesla_volatility = stock_filtered["Tesla Return %"].std()
-game_volatility = stock_filtered["GameStop Return %"].std()
-
-if pd.notna(tesla_volatility) and pd.notna(game_volatility):
-    if tesla_volatility > game_volatility:
-        volatility_text = (
-            "Tesla had the higher standard deviation of daily price changes."
-        )
-    elif game_volatility > tesla_volatility:
-        volatility_text = (
-            "GameStop had the higher standard deviation of daily price changes."
-        )
-    else:
-        volatility_text = (
-            "Both stocks had the same standard deviation of daily price changes."
+    if pd.notna(tsla_growth) and pd.notna(gme_growth):
+        stronger = (
+            "Tesla"
+            if tsla_growth > gme_growth
+            else "GameStop"
+            if gme_growth > tsla_growth
+            else "both companies equally"
         )
 
+        st.markdown(
+            f"**1. Relative price change:** {stronger} "
+            f"recorded the larger percentage change over the "
+            f"selected period. Tesla: {tsla_growth:.2f}%; "
+            f"GameStop: {gme_growth:.2f}%."
+        )
+        insight_count += 1
+
+    for company in ["Tesla", "GameStop"]:
+        values = stock_filtered[company].dropna()
+
+        if len(values) >= 2:
+            high = values.max()
+            low = values.min()
+            latest = values.iloc[-1]
+
+            st.markdown(
+                f"**{insight_count + 1}. {company} price range:** "
+                f"The observed prices ranged from {money(low)} "
+                f"to {money(high)}. The latest recorded price in "
+                f"the selected period was {money(latest)}."
+            )
+            insight_count += 1
+
+if revenue_filtered is not None and not revenue_filtered.empty:
+    for company in ["Tesla", "GameStop"]:
+        revenue_growth = growth_pct(revenue_filtered[company])
+
+        if pd.notna(revenue_growth):
+            st.markdown(
+                f"**{insight_count + 1}. {company} revenue:** "
+                f"The first-to-last observed revenue change was "
+                f"{revenue_growth:.2f}% over the selected period."
+            )
+            insight_count += 1
+
+if (
+    stock_filtered is not None
+    and not stock_filtered.empty
+    and revenue_filtered is not None
+    and not revenue_filtered.empty
+):
     st.markdown(
-        f"""
-        <div class="insight-card">
-        <b>⚡ Price volatility</b><br>
-        {volatility_text} This describes historical price variability,
-        not the probability of future gains or losses.
-        </div>
-        """,
-        unsafe_allow_html=True
+        "**Interpretation note:** Stock prices reflect market "
+        "expectations and other influences, not revenue alone. "
+        "These charts are descriptive and do not establish "
+        "that revenue changes caused stock-price movements."
     )
 
-st.caption(
-    "Insights are calculated from the selected data and date ranges. "
-    "Endpoint comparisons do not describe every movement between those dates."
-)
-
+if insight_count == 0:
+    st.info(
+        "There is not enough valid data in the selected period "
+        "to generate insights."
+    )
 
 # =========================================================
-# 12. FINAL CONCLUSION
+# CONCLUSION
 # =========================================================
 
 st.divider()
 st.header("5. Conclusion")
 
-st.markdown(
-    f"""
-    This analysis compares Tesla and GameStop from two perspectives:
-    **stock-market performance** and **business revenue**.
+if (
+    stock_filtered is not None
+    and not stock_filtered.empty
+    and revenue_filtered is not None
+    and not revenue_filtered.empty
+):
+    tsla_price_growth = growth_pct(stock_filtered["Tesla"])
+    gme_price_growth = growth_pct(stock_filtered["GameStop"])
 
-    - **Stock performance:** Tesla's endpoint price change was
-      {percentage(tesla_stock_return)}, compared with
-      {percentage(game_stock_return)} for GameStop.
+    tsla_revenue_growth = growth_pct(revenue_filtered["Tesla"])
+    gme_revenue_growth = growth_pct(revenue_filtered["GameStop"])
 
-    - **Revenue performance:** Tesla's revenue changed by
-      {percentage(tesla_revenue_growth)}, while GameStop's revenue
-      changed by {percentage(game_revenue_growth)} between the first
-      and last observations in the selected revenue period.
+    conclusion_parts = []
 
-    - **Risk perspective:** daily price variability helps explain how
-      differently the stocks moved over time, but historical volatility
-      alone cannot predict future returns.
+    if pd.notna(tsla_price_growth) and pd.notna(gme_price_growth):
+        if tsla_price_growth > gme_price_growth:
+            conclusion_parts.append(
+                "Tesla showed the larger percentage change in "
+                "stock price during the selected period."
+            )
+        elif gme_price_growth > tsla_price_growth:
+            conclusion_parts.append(
+                "GameStop showed the larger percentage change in "
+                "stock price during the selected period."
+            )
+        else:
+            conclusion_parts.append(
+                "Both stocks showed the same first-to-last "
+                "percentage change in the selected period."
+            )
 
-    **Overall takeaway:** stock-price growth and revenue growth measure
-    different aspects of a company. A stock can move differently from
-    its underlying revenue because market expectations, profitability,
-    business risks, and other factors also influence its valuation.
-    Therefore, the strongest conclusion comes from evaluating both
-    financial trends together rather than treating either metric alone
-    as a complete measure of business performance.
-    """
-)
+    if (
+        pd.notna(tsla_revenue_growth)
+        and pd.notna(gme_revenue_growth)
+    ):
+        if tsla_revenue_growth > gme_revenue_growth:
+            conclusion_parts.append(
+                "Tesla also recorded the larger first-to-last "
+                "revenue change in the selected period."
+            )
+        elif gme_revenue_growth > tsla_revenue_growth:
+            conclusion_parts.append(
+                "GameStop recorded the larger first-to-last "
+                "revenue change in the selected period."
+            )
+        else:
+            conclusion_parts.append(
+                "Both companies recorded the same first-to-last "
+                "revenue percentage change in the selected period."
+            )
 
-st.info(
-    "This dashboard is for educational and analytical purposes only. "
-    "It does not constitute investment advice."
-)
+    for sentence in conclusion_parts:
+        st.write(sentence)
 
+    st.write(
+        "Overall, the comparison highlights why stock-market "
+        "performance and reported revenue should be examined "
+        "together but interpreted as different measures. "
+        "The conclusion applies only to the dates and records "
+        "included in the selected dataset."
+    )
+
+else:
+    st.write(
+        "Use the available price and revenue charts to assess "
+        "each company's performance. A complete conclusion "
+        "requires valid stock and revenue records for the "
+        "selected period."
+    )
 
 # =========================================================
-# 13. FOOTER
+# DATA PREVIEW / DOWNLOAD
 # =========================================================
+
+with st.expander("View cleaned data"):
+    if stock_filtered is not None:
+        st.subheader("Stock Data")
+        st.dataframe(stock_filtered, use_container_width=True)
+
+        st.download_button(
+            "Download stock data",
+            data=stock_filtered.to_csv(index=False).encode("utf-8"),
+            file_name="filtered_stock_data.csv",
+            mime="text/csv"
+        )
+
+    if revenue_filtered is not None:
+        st.subheader("Revenue Data")
+        st.dataframe(revenue_filtered, use_container_width=True)
+
+        st.download_button(
+            "Download revenue data",
+            data=revenue_filtered.to_csv(index=False).encode("utf-8"),
+            file_name="filtered_revenue_data.csv",
+            mime="text/csv"
+        )
 
 st.divider()
-
 st.caption(
-    "Tesla vs GameStop Stock Performance & Revenue Analysis | "
-    "Python • Pandas • Plotly • Streamlit"
-)
-
-st.caption(
-    "Historical data analysis — past performance does not guarantee "
-    "future results."
+    "Educational data analysis project | "
+    "Historical data does not guarantee future performance."
 )
