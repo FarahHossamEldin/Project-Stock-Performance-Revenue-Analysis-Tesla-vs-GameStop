@@ -1276,6 +1276,7 @@ if len(selected_companies) == 2:
         )
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1487,17 +1488,34 @@ else:
 
 st.markdown(
     f"""
+    <style>
+    .conclusion-box {{
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }}
+
+    .conclusion-box .conclusion-text {{
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        background: transparent !important;
+        color: #e2e8f0 !important;
+        line-height: 1.8;
+    }}
+
+    .conclusion-box .conclusion-text b {{
+        background: transparent !important;
+        color: white !important;
+        overflow-wrap: anywhere;
+    }}
+    </style>
+
     <div class="conclusion-box">
         <div class="conclusion-title">
             What Does the Analysis Show?
         </div>
         <div class="conclusion-text">
             {conclusion}
-            <br><br>
-            <b>Project workflow:</b>
-            Data collection, data cleaning, date and period alignment,
-            revenue-growth calculations, exploratory analysis,
-            interactive visualizations, and evidence-based interpretation.
         </div>
     </div>
     """,
