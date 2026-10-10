@@ -1277,6 +1277,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1341,11 +1342,15 @@ if len(selected_companies) == 2:
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
     Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from ${tesla_start:,.2f}M to
-    ${tesla_end:,.2f}M, representing a
+    Tesla's revenue changed from
+    <span class="conclusion-number">${tesla_start:,.2f}M</span> to
+    <span class="conclusion-number">${tesla_end:,.2f}M</span>,
+    representing a
     <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-    GameStop's revenue changed from ${gme_start:,.2f}M to
-    ${gme_end:,.2f}M, representing a
+    GameStop's revenue changed from
+    <span class="conclusion-number">${gme_start:,.2f}M</span> to
+    <span class="conclusion-number">${gme_end:,.2f}M</span>,
+    representing a
     <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
 
     <br><br><b>2. Growth consistency and variation:</b><br>
@@ -1440,8 +1445,10 @@ else:
     conclusion = f"""
     <b>1. Long-term revenue performance:</b><br>
     {company}'s revenue changed from
-    ${start_revenue:,.2f}M in {revenue_start_year} to
-    ${end_revenue:,.2f}M in {revenue_end_year}, representing a
+    <span class="conclusion-number">${start_revenue:,.2f}M</span>
+    in {revenue_start_year} to
+    <span class="conclusion-number">${end_revenue:,.2f}M</span>
+    in {revenue_end_year}, representing a
     <b>{revenue_change[company]:+,.2f}%</b> total change.
 
     <br><br><b>2. Revenue growth:</b><br>
@@ -1468,7 +1475,6 @@ else:
             " A valid stock-price percentage change was not available."
         )
 
-    # Add normalized performance for the selected company
     if stock is not None and not pd.isna(stock["change"]):
         conclusion += (
             f" On the normalized chart, the stock starts at 100 "
@@ -1486,14 +1492,15 @@ else:
     findings are descriptive and are not investment advice.
     """
 
+
 st.markdown(
     """
     <style>
     .conclusion-box {
         max-width: 100%;
         min-width: 0;
-        overflow: hidden;
         box-sizing: border-box;
+        overflow: hidden;
     }
 
     .conclusion-box .conclusion-text {
@@ -1501,19 +1508,32 @@ st.markdown(
         width: 100%;
         max-width: 100%;
         min-width: 0;
-        white-space: normal !important;
-        overflow-wrap: break-word !important;
-        word-wrap: break-word !important;
-        word-break: normal !important;
         box-sizing: border-box;
-        background: none !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+        background: transparent !important;
+        background-color: transparent !important;
         color: #e2e8f0 !important;
+        -webkit-text-fill-color: #e2e8f0 !important;
         line-height: 1.8;
     }
 
     .conclusion-box .conclusion-text b {
         color: #ffffff !important;
-        background: none !important;
+        -webkit-text-fill-color: #ffffff !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+
+    .conclusion-box .conclusion-text .conclusion-number {
+        color: #e2e8f0 !important;
+        -webkit-text-fill-color: #e2e8f0 !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
         white-space: normal !important;
     }
     </style>
@@ -1534,7 +1554,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 
 # =====================================================
