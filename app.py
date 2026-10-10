@@ -1281,6 +1281,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1486,7 +1487,12 @@ st.markdown(
         <div class="conclusion-title">
             What Does the Analysis Show?
         </div>
-        <div class="conclusion-text">
+        <div class="conclusion-text"
+             style="color: #e2e8f0 !important;
+                    background-color: transparent !important;
+                    -webkit-text-fill-color: #e2e8f0 !important;
+                    white-space: normal;
+                    overflow-wrap: break-word;">
             {conclusion}
         </div>
     </div>
