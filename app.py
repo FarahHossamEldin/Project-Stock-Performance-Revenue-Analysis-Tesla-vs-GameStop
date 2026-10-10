@@ -1482,24 +1482,13 @@ else:
 
 
 st.markdown(
-    f"""
-    <div class="conclusion-box">
-        <div class="conclusion-title">
-            What Does the Analysis Show?
-        </div>
-        <div class="conclusion-text"
-             style="color: #e2e8f0 !important;
-                    background-color: transparent !important;
-                    -webkit-text-fill-color: #e2e8f0 !important;
-                    white-space: normal;
-                    overflow-wrap: break-word;">
-            {conclusion}
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
+    "### What Does the Analysis Show?"
 )
 
+st.markdown(
+    conclusion,
+    unsafe_allow_html=True
+)
 
 
 
