@@ -227,7 +227,7 @@ Explore the interactive Streamlit dashboard to compare Tesla and GameStop stock 
 
 [Open the Streamlit Dashboard](https://project-stock-performance-revenue-analysis-tesla-vs-gamestop-d.streamlit.app/#what-does-the-analysis-show)
 
-### 📁 Project Structure
+## 📁 Project Structure
 
 ```text
 Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
@@ -255,12 +255,12 @@ Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
 
 ### Data Science | Python | Data Analysis | Interactive Visualization
 
-[LinkedIn](https://linkedin.com/in/farahhossam/)
+Linkedin Profile: [LinkedIn](https://linkedin.com/in/farahhossam/)
 
-[Portfolio](https://farahhossameldin.github.io/)
+Portfolio Link: [Portfolio](https://farahhossameldin.github.io/)
 
-[Github](https://github.com/FarahHossamEldin)
+Github Link: [Github](https://github.com/FarahHossamEldin)
 
 
 
-### Driven by curiosity. Powered by data. Focused on impact.
+#### Driven by curiosity. Powered by data. Focused on impact.
