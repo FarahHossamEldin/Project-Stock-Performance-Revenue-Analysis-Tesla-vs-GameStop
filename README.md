@@ -1,65 +1,53 @@
-# Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop-Project
-A Python-based analysis comparing the historical stock performance and revenue trends of Tesla and GameStop using data analysis, web scraping, and interactive visualizations.
+# Tesla vs. GameStop — Stock Performance & Revenue Analysis
 
-## Project Overview
+A Python-based financial data analysis project comparing Tesla and GameStop through historical stock prices, revenue trends, year-over-year revenue growth, and normalized stock performance. The project combines financial data collection, web scraping, data cleaning, exploratory data analysis, and interactive visualizations.
 
-This project analyzes and compares the historical stock performance and revenue trends of Tesla and GameStop.
+## 📌 Project Overview
 
-The analysis combines financial data collection, data cleaning, exploratory data analysis, revenue growth analysis, stock price comparison, and interactive visualizations.
+This project explores the historical financial performance of Tesla and GameStop by analyzing their stock market data and revenue trends.
 
-The goal is to explore how the two companies' revenue and stock prices changed over time and identify notable trends in their financial performance.
+Using Python, financial data collection, and web scraping, the analysis examines how the two companies' revenue and stock prices evolved over time. It also compares their revenue growth patterns and relative stock performance to identify notable trends and differences.
 
----
+The project was developed using **Google Colab** for data collection, processing, analysis, and visualization, followed by an interactive **Streamlit dashboard** to present the findings.
 
-## Project Preview
+## 🔗 Project Links
 
-### Revenue Growth Comparison
+- **Google Colab Notebook:** [Explore the Full Analysis](https://colab.research.google.com/drive/168cDhOePUw-mxq-KbjzqoqnTrsBYh1nm)
+- **Interactive Streamlit Dashboard:** [Launch the Dashboard](https://project-stock-performance-revenue-analysis-tesla-vs-gamestop-d.streamlit.app/#what-does-the-analysis-show)
+- **GitHub Repository:** [View Source Code](https://github.com/FarahHossamEldin/Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop)
 
-![Revenue Growth Comparison](images/revenue_growth_comparison.png)
+## 🎯 Project Objectives
 
-### Stock Price Comparison
+- Collect historical stock market data for Tesla and GameStop.
+- Retrieve and prepare historical revenue data through web scraping.
+- Clean and transform financial datasets for analysis.
+- Explore historical stock prices and revenue trends.
+- Calculate and compare year-over-year revenue growth.
+- Evaluate stock performance using actual prices and normalized indices.
+- Identify key financial trends, growth patterns, and market movements.
+- Communicate findings through clear visualizations and an interactive dashboard.
 
-![Stock Price Comparison](images/stock_price_comparison.png)
+## 🛠️ Tools & Technologies
 
-### Interactive Revenue Comparison
+| Technology | Purpose |
+|---|---|
+| Google Colab | Notebook development and analysis |
+| Python | Data analysis and processing |
+| yfinance | Historical stock market data collection |
+| Requests | Retrieving web page content |
+| BeautifulSoup | Web scraping |
+| Pandas | Data cleaning, transformation, and analysis |
+| Matplotlib | Exploratory data visualization |
+| Plotly | Interactive visualizations |
+| Streamlit | Interactive dashboard development |
 
-![Interactive Revenue Comparison](images/revenue_comparison.png)
+## 📥 Data Collection
 
-> Interactive Plotly visualizations are available in the project notebook.
+### 1. Stock Market Data
 
----
+Historical stock market data for Tesla and GameStop was collected using the `yfinance` Python library.
 
-## Objectives
-
-- Analyze historical stock price trends for Tesla and GameStop.
-- Examine historical revenue trends.
-- Compare revenue growth between the two companies.
-- Compare historical stock price movements.
-- Identify notable trends and changes in financial performance.
-- Create interactive visualizations using Plotly.
-
----
-
-## Tools & Technologies
-
-- Python
-- Pandas
-- Matplotlib
-- Plotly
-- yfinance
-- BeautifulSoup
-- Requests
-- Jupyter Notebook
-
----
-
-## Data Collection
-
-### Stock Data
-
-Historical stock data for Tesla and GameStop was collected using the `yfinance` Python library.
-
-The stock datasets include information such as:
+The datasets contain available historical market information, including:
 
 - Date
 - Open price
@@ -68,94 +56,213 @@ The stock datasets include information such as:
 - Closing price
 - Trading volume
 
-### Revenue Data
+The collected data was prepared for historical trend analysis and stock performance comparison.
+
+### 2. Revenue Data
 
 Historical revenue data was collected through web scraping using:
 
-- Requests
-- BeautifulSoup
-- Pandas
+- `Requests`
+- `BeautifulSoup`
+- `Pandas`
 
-The scraped revenue data was then cleaned and converted into appropriate data types for analysis.
+The scraped data was cleaned and converted into numeric values to make it suitable for financial analysis.
 
----
+For the revenue comparison, the analysis focuses on the shared **2009–2020 period**, allowing both companies to be evaluated over the same historical timeframe.
 
-## Analysis & Methodology
+## 🧹 Data Cleaning & Preparation
 
-The project follows these main steps:
+The collected datasets were inspected and prepared before analysis.
 
-### 1. Data Collection
+Key preparation steps included:
 
-Stock data was obtained using `yfinance`, while historical revenue data was collected through web scraping.
+- Inspecting dataset structures and data types.
+- Converting date columns into appropriate datetime formats.
+- Cleaning scraped revenue values and converting them into numeric data.
+- Sorting observations chronologically.
+- Aligning the datasets for meaningful historical comparisons.
 
-### 2. Data Cleaning
+These steps helped ensure that the financial metrics and visualizations were based on consistently prepared data.
 
-The datasets were inspected and cleaned by:
+## 📊 Exploratory Data Analysis (EDA)
 
-- Checking data types
-- Converting dates into datetime format
-- Converting revenue values into numeric values
-- Preparing the datasets for analysis
+Exploratory analysis was conducted to understand the historical behavior of the two companies' revenue and stock prices.
 
-### 3. Exploratory Data Analysis
+The analysis examined:
 
-Historical stock prices and revenue trends were visualized using Matplotlib.
+- Historical revenue trends.
+- Differences in financial performance.
+- Periods of significant growth or decline.
+- Changes in stock prices over time.
+- Notable market movements and fluctuations.
 
-### 4. Revenue Growth Analysis
+Matplotlib was used for exploratory visualizations, while Plotly supported interactive charts.
 
-Year-over-year revenue growth was calculated using the `pct_change()` method.
+📈 Revenue Growth Analysis
 
-The revenue growth of Tesla and GameStop was then compared during their overlapping period.
+Year-over-year revenue growth was calculated using Pandas' pct_change() method.
 
-### 5. Stock Price Comparison
+The analysis compares the annual growth rates of Tesla and GameStop during their shared revenue period.
 
-Historical closing prices were compared over their common trading period.
+This helps identify:
 
-### 6. Interactive Visualization
+Periods of rapid revenue expansion.
 
-Plotly was used to create interactive visualizations that allow users to explore the data through hover, zoom, and other interactive features.
+Years with negative revenue growth.
 
----
+Differences in growth patterns between the companies.
 
-## Key Insights
+Variations in annual growth that may not be apparent from revenue values alone.
 
-- Tesla demonstrated stronger and more consistent revenue growth than GameStop during the overlapping period (2009–2020).
-- Tesla's revenue increased substantially over the analyzed period, while GameStop experienced several periods of negative revenue growth.
-- Tesla generally traded at a higher stock price than GameStop and showed greater price fluctuations.
-- GameStop experienced a sharp increase in stock price around 2021, while Tesla's stock price also increased noticeably around 2020.
+The analysis also examines average annual growth and notable growth periods to provide additional context for interpreting long-term revenue trends.
 
----
+📉 Stock Performance Analysis
 
-## Conclusion
+Historical stock prices were analyzed to compare market performance over time.
 
-This project demonstrates how financial data can be collected, cleaned, analyzed, and visualized using Python.
+The analysis examines:
 
-It combines data collection through financial APIs and web scraping with exploratory analysis, revenue growth analysis, stock price comparison, and interactive visualization.
+Historical closing price trends.
 
-The project provided practical experience in using Python-based data analysis tools to explore real-world financial data.
+Overall percentage changes in stock prices.
 
----
+Differences in observed price movements.
 
-## How to Run
+Notable market periods, including the significant movements around 2020 and 2021.
 
-1. Clone this repository.
+Because the companies have different starting share prices, actual stock prices and percentage-based performance provide complementary perspectives rather than interchangeable measures.
 
-2. Install the required libraries:
+⚖️ Normalized Stock Performance
 
-```bash
-pip install pandas matplotlib plotly yfinance beautifulsoup4 requests
+To make relative stock performance easier to compare, both stocks are normalized to a starting index value of 100.
 
-3.Open Jupyter Notebook:
+The calculation is:
 
-jupyter notebook
+Normalized Index = (Current Stock Price / Initial Stock Price) × 100
 
-4.Open Stock_Performance_Revenue_Analysis.ipynb.
-5.Run the cells sequentially.
+For example, a normalized index of 200 indicates that the stock price has doubled compared with its starting value, representing a 100% increase.
 
-Stock-Performance-Revenue-Analysis/
+This approach allows the relative performance of Tesla and GameStop to be compared independently of their initial share prices.
+
+📈 Project Visualizations
+
+The notebook includes visualizations that support the analysis of revenue trends, annual growth, and historical stock performance.
+
+Revenue Growth Comparison
+
+
+
+View Full-Size Image
+
+Stock Price Comparison
+
+
+
+View Full-Size Image
+
+Revenue Comparison
+
+
+
+View Full-Size Image
+
+Note: These images are static previews. Interactive Plotly visualizations can be explored in the notebook.
+
+💡 Key Insights
+
+Revenue growth: Tesla experienced substantial revenue expansion over the shared 2009–2020 period, while GameStop's revenue followed a more variable trajectory.
+
+Year-over-year variation: Annual growth rates reveal fluctuations that cannot be fully understood by examining long-term revenue changes alone.
+
+Different performance measures: Revenue growth and stock-price performance reflect different aspects of a company's financial story.
+
+Market movements: Both companies experienced notable stock-price movements during the analyzed period, including significant changes around 2020 and 2021.
+
+Normalized comparison: Rebasing stock prices to 100 makes relative percentage performance easier to compare despite differences in initial share prices.
+
+Historical context matters: Conclusions depend on the selected timeframe, available data, and the financial metric being examined.
+
+🔎 Conclusion
+
+This project demonstrates a financial data analysis workflow using Python, from collecting real-world data and cleaning datasets to conducting exploratory analysis, evaluating revenue growth, and comparing historical stock performance.
+
+The analysis highlights the importance of examining revenue trends, year-over-year growth, actual stock prices, and normalized performance together. Each metric offers a different perspective, and no single indicator fully explains a company's financial performance.
+
+The key takeaway is that business performance and stock market performance should be analyzed together, but they should not be treated as interchangeable measures of success.
+
+This project is intended for educational and analytical purposes only and does not constitute investment advice or a prediction of future returns.
+
+🚀 Interactive Streamlit Dashboard
+
+To make the analysis more accessible, an interactive Streamlit dashboard was developed to present the project's key findings and allow users to explore the financial data dynamically.
+
+Dashboard Features
+
+Company Selection: Explore Tesla, GameStop, or compare both companies.
+
+Date-Range Filtering: Investigate stock performance over a selected period.
+
+KPI Cards: Review key stock performance metrics and the latest available stock-price date.
+
+Stock Price Analysis: Explore historical closing prices using interactive charts.
+
+Revenue Comparison: Compare historical revenue trends across the shared 2009–2020 period.
+
+Revenue Growth Analysis: Examine annual growth rates and identify significant changes.
+
+Normalized Performance: Compare relative stock performance using a common starting index of 100.
+
+Head-to-Head Comparison: Evaluate differences between the two companies across key financial indicators.
+
+Analytical Insights: Review key observations and a consolidated conclusion.
+
+Interactive Plotly Charts: Use hover details, zoom, and other chart interactions to investigate trends.
+
+Dashboard Preview
+
+Launch the interactive dashboard: Open Streamlit App
+
+The dashboard complements the notebook by providing an interactive interface for exploring financial metrics, comparing company performance, and reviewing the main findings without manually running each analysis step.
+
+⚙️ How to Run the Project
+
+Option 1: Google Colab Notebook
+
+Open the Google Colab Notebook.
+
+Connect to a Colab runtime.
+
+Install any required dependencies if they are not already available.
+
+Run the notebook cells sequentially to reproduce the analysis.
+
+Option 2: Run the Streamlit Dashboard Locally
+
+Prerequisites: Python and Git.
+
+Clone the repository:
+
+git clone https://github.com/FarahHossamEldin/Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop.git
+cd Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop
+
+Install the required libraries:
+
+pip install pandas numpy matplotlib plotly yfinance beautifulsoup4 requests streamlit
+
+Run the dashboard:
+
+streamlit run app.py
+
+Make sure the required CSV files are available at the paths expected by app.py.
+
+📁 Repository Structure
+
+Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
 │
 ├── README.md
 ├── Stock_Performance_Revenue_Analysis.ipynb
+├── app.py
+├── requirements.txt
 │
 ├── images/
 │   ├── revenue_growth_comparison.png
@@ -165,3 +272,19 @@ Stock-Performance-Revenue-Analysis/
 └── data/
     ├── tesla_data.csv
     └── gamestop_data.csv
+
+This structure is illustrative. Update it to match the actual files and folders in the repository, including any CSV files used by the Streamlit dashboard.
+
+👩‍💻 Author
+
+Farah Hossam
+
+Data Science | Python | Data Analysis | Interactive Visualization
+
+LinkedIn
+
+GitHub
+
+Portfolio
+
+Driven by curiosity. Powered by data. Focused on impact.
