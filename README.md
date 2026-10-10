@@ -98,7 +98,7 @@ The analysis examined:
 
 Matplotlib was used for exploratory visualizations, while Plotly supported interactive charts.
 
-###📈 Revenue Growth Analysis
+### 📈 Revenue Growth Analysis
 
 Year-over-year revenue growth was calculated using Pandas' pct_change() method.
 
@@ -116,7 +116,7 @@ Variations in annual growth that may not be apparent from revenue values alone.
 
 The analysis also examines average annual growth and notable growth periods to provide additional context for interpreting long-term revenue trends.
 
-###📉 Stock Performance Analysis
+### 📉 Stock Performance Analysis
 
 Historical stock prices were analyzed to compare market performance over time.
 
@@ -132,7 +132,7 @@ Notable market periods, including the significant movements around 2020 and 2021
 
 Because the companies have different starting share prices, actual stock prices and percentage-based performance provide complementary perspectives rather than interchangeable measures.
 
-###⚖️ Normalized Stock Performance
+### ⚖️ Normalized Stock Performance
 
 To make relative stock performance easier to compare, both stocks are normalized to a starting index value of 100.
 
@@ -144,22 +144,22 @@ For example, a normalized index of 200 indicates that the stock price has double
 
 This approach allows the relative performance of Tesla and GameStop to be compared independently of their initial share prices.
 
-##📈 Project Visualizations
+## 📈 Project Visualizations
 
 The notebook includes visualizations that support the analysis of revenue trends, annual growth, and historical stock performance.
 
-###Revenue Comparison
-![Revenue Comparison](images/Revenue comparison.png)
+### Revenue Comparison
+![Revenue Comparison](images/Revenue comparison.PNG)
 
-###Revenue Growth Comparison
-![Revenue Growth Comparison](images/Revenue_growth_comparison.png)
+### Revenue Growth Comparison
+![Revenue Growth Comparison](images/Revenue_growth_comparison.PNG)
 
-###Stock Price Comparison
-![Stock Price Comparison](images/Stock_price_comparison.png)
+### Stock Price Comparison
+![Stock Price Comparison](images/Stock_price_comparison.PNG)
 
 Note: These images are static previews. Interactive Plotly visualizations can be explored in the notebook.
 
-##💡 Key Insights
+## 💡 Key Insights
 
 - Revenue growth: Tesla experienced substantial revenue expansion over the shared 2009–2020 period, while GameStop's revenue followed a more variable trajectory.
 
@@ -173,7 +173,7 @@ Note: These images are static previews. Interactive Plotly visualizations can be
 
 - Historical context matters: Conclusions depend on the selected timeframe, available data, and the financial metric being examined.
 
-##🔎 Conclusion
+## 🔎 Conclusion
 
 This project demonstrates a financial data analysis workflow using Python, from collecting real-world data and cleaning datasets to conducting exploratory analysis, evaluating revenue growth, and comparing historical stock performance.
 
@@ -183,13 +183,13 @@ The key takeaway is that business performance and stock market performance shoul
 
 This project is intended for educational and analytical purposes only and does not constitute investment advice or a prediction of future returns.
 
-##🚀 Interactive Streamlit Dashboard
+## 🚀 Interactive Streamlit Dashboard
 
 To make the analysis more accessible, an interactive Streamlit dashboard was developed to present the project's key findings and allow users to explore the financial data dynamically.
 
 The dashboard complements the notebook by providing an interactive interface for exploring financial metrics, comparing company performance, and reviewing the main findings without manually running each analysis step.
 
-###Dashboard Features
+### Dashboard Features
 
 - Company Selection: Explore Tesla, GameStop, or compare both companies.
 
@@ -213,7 +213,7 @@ The dashboard complements the notebook by providing an interactive interface for
 
 
 
-##⚙️ How to Run the Project
+## ⚙️ How to Run the Project
 
 ### Run the Notebook
 
@@ -227,7 +227,7 @@ Explore the interactive Streamlit dashboard to compare Tesla and GameStop stock 
 
 [Open the Streamlit Dashboard](https://project-stock-performance-revenue-analysis-tesla-vs-gamestop-d.streamlit.app/#what-does-the-analysis-show)
 
-📁 Repository Structure
+## 📁 Repository Structure
 
 Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
 │
@@ -247,9 +247,9 @@ Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
     └── stock_comparison.csv
 
 
-#👩‍💻 Author
+# 👩‍💻 Author
 
-##Farah Hossam
+## Farah Hossam
 
 Data Science | Python | Data Analysis | Interactive Visualization
 
