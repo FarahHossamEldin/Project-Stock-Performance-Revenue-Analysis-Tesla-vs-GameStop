@@ -1286,6 +1286,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1335,7 +1336,7 @@ if len(selected_companies) == 2:
                 else:
                     gme_normalized_end = normalized_end
 
-    # Determine revenue growth winner
+    # Revenue growth comparison
     if tesla_avg > gme_avg:
         growth_winner = "Tesla"
     elif gme_avg > tesla_avg:
@@ -1345,43 +1346,52 @@ if len(selected_companies) == 2:
             "neither company; their average growth rates were equal"
         )
 
-    # Display conclusion heading only once
+    # Display conclusion heading once
     st.markdown(
         '<div class="section-title">🔎 Conclusion</div>',
         unsafe_allow_html=True
     )
 
-conclusion = f"""
-
-
+    # Build conclusion content
+    conclusion = f"""
 ### What Does the Analysis Show?
 
-**1. Revenue trajectory:**  
+**1. Revenue Trajectory**
+
 Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_start:,.2f}M to &#36;{tesla_end:,.2f}M, representing a **+28,057.14%** total change. GameStop's revenue changed from &#36;{gme_start:,.2f}M to &#36;{gme_end:,.2f}M, representing a **-26.57%** total change.
 
-<br><br>
+**2. Growth Consistency and Variation**
 
-**2. Growth consistency and variation:**  
-Tesla's average annual revenue growth was **+83.67%**, compared with **-2.37%** for GameStop. The strongest annual revenue growth occurred in 2013 for Tesla (+387.41%) and in 2018 for GameStop (+7.31%). These averages can conceal considerable year-to-year variation, so the annual growth chart should be considered alongside the long-term revenue trend.
+Tesla's average annual revenue growth was **+83.67%**, compared with **-2.37%** for GameStop. The strongest annual revenue growth occurred in 2013 for Tesla (+387.41%) and in 2018 for GameStop (+7.31%).
 
-<br><br>
+These averages can conceal considerable year-to-year variation, so the annual growth chart should be considered alongside the long-term revenue trend.
 
-**3. Market performance and normalized comparison:**  
-The stock-price analysis covers the selected period, 2010-06-29 to 2026-10-05. Tesla's observed stock-price change was **+23709.12%**. GameStop's observed stock-price change was **+732.28%**. When both stocks are rebased to 100 at the start of the selected period, Tesla finishes at **23809.12** and GameStop at **832.28**. This corresponds to a normalized change of **+23709.12%** for Tesla and **+732.28%** for GameStop. Normalization makes their relative percentage performance easier to compare despite different starting share prices.
+**3. Market Performance and Normalized Comparison**
 
-<br><br>
+The stock-price analysis covers the selected period, 2010-06-29 to 2026-10-05.
 
-**4. Overall interpretation:**  
+- Tesla's observed stock-price change was **+23709.12%**.
+- GameStop's observed stock-price change was **+732.28%**.
+- Tesla's normalized ending index was **{tesla_normalized_end:,.2f}**, starting from a base of 100.
+- GameStop's normalized ending index was **{gme_normalized_end:,.2f}**, starting from a base of 100.
+
+This corresponds to a normalized change of **+23709.12%** for Tesla and **+732.28%** for GameStop. Normalization makes their relative percentage performance easier to compare despite different starting share prices.
+
+**4. Overall Interpretation**
+
 Tesla had the higher average annual revenue growth rate over the shared period. However, revenue size, revenue growth, and stock-price performance describe different aspects of a company's financial story. A higher average growth rate does not necessarily mean a company had higher revenue in every year.
 
 Stock-price performance provides a separate market perspective. Share prices can reflect investor expectations, perceived risk, and other market conditions, not just reported revenue. The normalized chart compares relative stock performance over the selected dates, while the original price chart preserves actual share prices in USD.
 
-<br><br>
+**Final Takeaway**
 
-**Final takeaway:**  
-The strongest interpretation comes from considering revenue size, long-term revenue change, year-over-year growth, actual stock prices, and normalized stock performance together. These indicators complement one another, but none alone explains the full financial picture. The analysis describes historical observations and is not investment advice or a prediction of future returns.
+The strongest interpretation comes from considering revenue size, long-term revenue change, year-over-year growth, actual stock prices, and normalized stock performance together. These indicators complement one another, but none alone explains the full financial picture.
+
+The analysis describes historical observations and is not investment advice or a prediction of future returns.
 """
-st.markdown(conclusion, unsafe_allow_html=True)
+
+    st.markdown(conclusion, unsafe_allow_html=True)
+
 
 
 
