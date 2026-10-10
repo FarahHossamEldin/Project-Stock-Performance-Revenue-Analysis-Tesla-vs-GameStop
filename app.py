@@ -115,13 +115,12 @@ def prepare_stock_data(df):
     result = df[[date_col, tesla_col, game_col]].copy()
     result.columns = ["Date", "Tesla", "GameStop"]
 
-    result["Date"] = pd.to_datetime(
+result["Date"] = pd.to_datetime(
     result["Date"],
     errors="coerce",
     format="mixed",
     utc=True
 ).dt.tz_convert(None)
-    )
 
     for col in ["Tesla", "GameStop"]:
         result[col] = clean_numeric(result[col])
