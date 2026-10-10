@@ -1282,6 +1282,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1344,10 +1345,13 @@ if len(selected_companies) == 2:
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
     Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from ${tesla_start:,.2f}M to ${tesla_end:,.2f}M,
-    representing a <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-    GameStop's revenue changed from ${gme_start:,.2f}M to ${gme_end:,.2f}M,
-    representing a <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
+    Tesla's revenue started at ${tesla_start:,.2f}M and ended at
+    ${tesla_end:,.2f}M, representing a
+    <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
+
+    GameStop's revenue started at ${gme_start:,.2f}M and ended at
+    ${gme_end:,.2f}M, representing a
+    <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
 
     <br><br><b>2. Growth consistency and variation:</b><br>
     Tesla's average annual revenue growth was
@@ -1435,9 +1439,10 @@ else:
 
     conclusion = f"""
     <b>1. Long-term revenue performance:</b><br>
-    {company}'s revenue changed from ${start_revenue:,.2f}M in
-    {revenue_start_year} to ${end_revenue:,.2f}M in {revenue_end_year},
-    representing a <b>{revenue_change[company]:+,.2f}%</b> total change.
+    {company}'s revenue started at ${start_revenue:,.2f}M in
+    {revenue_start_year} and ended at ${end_revenue:,.2f}M in
+    {revenue_end_year}, representing a
+    <b>{revenue_change[company]:+,.2f}%</b> total change.
 
     <br><br><b>2. Revenue growth:</b><br>
     Average annual revenue growth was
@@ -1482,13 +1487,19 @@ else:
 
 
 st.markdown(
-    "### What Does the Analysis Show?"
-)
-
-st.markdown(
-    conclusion,
+    f"""
+    <div class="conclusion-box">
+        <div class="conclusion-title">
+            What Does the Analysis Show?
+        </div>
+        <div class="conclusion-text">
+            {conclusion}
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True
 )
+
 
 
 
