@@ -1279,6 +1279,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1343,10 +1344,10 @@ if len(selected_companies) == 2:
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
     Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from ${tesla_start:,.2f}M to
+    Tesla's revenue changed from ${tesla_start:,.2f}M&nbsp;to
     ${tesla_end:,.2f}M, representing a
     <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-    GameStop's revenue changed from ${gme_start:,.2f}M to
+    GameStop's revenue changed from ${gme_start:,.2f}M&nbsp;to
     ${gme_end:,.2f}M, representing a
     <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
 
@@ -1490,45 +1491,6 @@ else:
 
 
 st.markdown(
-    """
-    <style>
-    .conclusion-box {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-        overflow: hidden;
-    }
-
-    .conclusion-box .conclusion-text {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-        white-space: normal !important;
-        overflow-wrap: break-word !important;
-        word-wrap: break-word !important;
-        word-break: normal !important;
-        background: transparent !important;
-        background-color: transparent !important;
-        color: #e2e8f0 !important;
-        -webkit-text-fill-color: #e2e8f0 !important;
-        line-height: 1.8;
-    }
-
-    .conclusion-box .conclusion-text b {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        background: transparent !important;
-        background-color: transparent !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-st.markdown(
     f"""
     <div class="conclusion-box">
         <div class="conclusion-title">
@@ -1541,6 +1503,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
