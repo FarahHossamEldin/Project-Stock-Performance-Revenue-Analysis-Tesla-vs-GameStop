@@ -1345,12 +1345,9 @@ if len(selected_companies) == 2:
         )
 
     conclusion = f"""
-    <b>1. Revenue trajectory:</b><br>
-    Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from &#36;{tesla_start:,.2f}M to ${tesla_end:,.2f}M,
-    representing a <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-    GameStop's revenue changed from &#36;{gme_start:,.2f}M to ${gme_end:,.2f}M,
-    representing a <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
+    **1. Revenue trajectory:**\
+
+Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_start:,.2f}M to &#36;{tesla_end:,.2f}M, representing a <b>+28,057.14%</b> total change. GameStop's revenue changed from &#36;{gme_start:,.2f}M to &#36;{gme_end:,.2f}M, representing a **-26.57%** total change.
 
     <br><br><b>2. Growth consistency and variation:</b><br>
     Tesla's average annual revenue growth was
