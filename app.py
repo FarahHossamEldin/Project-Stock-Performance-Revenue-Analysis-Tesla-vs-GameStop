@@ -1487,29 +1487,42 @@ else:
     """
 
 st.markdown(
-    f"""
+    """
     <style>
-    .conclusion-box {{
-        overflow-wrap: anywhere;
-        word-break: normal;
-    }}
+    .conclusion-box {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
 
-    .conclusion-box .conclusion-text {{
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: normal;
-        background: transparent !important;
+    .conclusion-box .conclusion-text {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        word-break: normal !important;
+        box-sizing: border-box;
+        background: none !important;
         color: #e2e8f0 !important;
         line-height: 1.8;
-    }}
+    }
 
-    .conclusion-box .conclusion-text b {{
-        background: transparent !important;
-        color: white !important;
-        overflow-wrap: anywhere;
-    }}
+    .conclusion-box .conclusion-text b {
+        color: #ffffff !important;
+        background: none !important;
+        white-space: normal !important;
+    }
     </style>
+    """,
+    unsafe_allow_html=True
+)
 
+st.markdown(
+    f"""
     <div class="conclusion-box">
         <div class="conclusion-title">
             What Does the Analysis Show?
@@ -1521,6 +1534,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 # =====================================================
