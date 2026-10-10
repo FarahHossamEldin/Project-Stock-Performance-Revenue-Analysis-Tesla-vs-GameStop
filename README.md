@@ -149,7 +149,7 @@ This approach allows the relative performance of Tesla and GameStop to be compar
 The notebook includes visualizations that support the analysis of revenue trends, annual growth, and historical stock performance.
 
 ### Revenue Comparison
-![Revenue Comparison](images/Revenue comparison.PNG)
+![Revenue Comparison](images/Revenue_comparison.PNG)
 
 ### Revenue Growth Comparison
 ![Revenue Growth Comparison](images/Revenue_growth_comparison.PNG)
