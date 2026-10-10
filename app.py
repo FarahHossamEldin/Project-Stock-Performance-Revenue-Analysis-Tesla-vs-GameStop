@@ -1351,13 +1351,12 @@ if len(selected_companies) == 2:
         unsafe_allow_html=True
     )
 
-    onclusion = f"""
+conclusion = f"""
 **🔎 Conclusion**
 
 ### What Does the Analysis Show?
 
 **1. Revenue trajectory:**  
-Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_start:,.2f}M to &#36;{tesla_end:,.2f}M, representing a <b>+28,057.14%</b> total change. GameStop's revenue changed from &#36;{gme_start:,.2f}M to &#36;{gme_end:,.2f}M, representing a **-26.57%** total change.
 Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_start:,.2f}M to &#36;{tesla_end:,.2f}M, representing a **+28,057.14%** total change. GameStop's revenue changed from &#36;{gme_start:,.2f}M to &#36;{gme_end:,.2f}M, representing a **-26.57%** total change.
 
 <br><br>
@@ -1365,17 +1364,11 @@ Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_s
 **2. Growth consistency and variation:**  
 Tesla's average annual revenue growth was **+83.67%**, compared with **-2.37%** for GameStop. The strongest annual revenue growth occurred in 2013 for Tesla (+387.41%) and in 2018 for GameStop (+7.31%). These averages can conceal considerable year-to-year variation, so the annual growth chart should be considered alongside the long-term revenue trend.
 
-**2. Stock performance:**  
-Tesla experienced substantial stock price growth over the analyzed period, while GameStop's stock performance followed a different trajectory.
 <br><br>
 
-**3. Business growth vs. market performance:**  
-Revenue trends provide context for understanding each company's business performance, while stock prices reflect market expectations and investor sentiment as well as company fundamentals.
 **3. Market performance and normalized comparison:**  
 The stock-price analysis covers the selected period, 2010-06-29 to 2026-10-05. Tesla's observed stock-price change was **+23709.12%**. GameStop's observed stock-price change was **+732.28%**. When both stocks are rebased to 100 at the start of the selected period, Tesla finishes at **23809.12** and GameStop at **832.28**. This corresponds to a normalized change of **+23709.12%** for Tesla and **+732.28%** for GameStop. Normalization makes their relative percentage performance easier to compare despite different starting share prices.
 
-**4. Key takeaway:**  
-Tesla showed stronger revenue growth across the shared period, whereas GameStop's revenue declined overall. Comparing revenue and stock performance highlights the importance of examining business fundamentals alongside market behavior.
 <br><br>
 
 **4. Overall interpretation:**  
@@ -1389,7 +1382,7 @@ Stock-price performance provides a separate market perspective. Share prices can
 The strongest interpretation comes from considering revenue size, long-term revenue change, year-over-year growth, actual stock prices, and normalized stock performance together. These indicators complement one another, but none alone explains the full financial picture. The analysis describes historical observations and is not investment advice or a prediction of future returns.
 """
 
-st.markdown("### What Does the Analysis Show?")
+st.markdown(conclusion, unsafe_allow_html=True)
 
 
 
