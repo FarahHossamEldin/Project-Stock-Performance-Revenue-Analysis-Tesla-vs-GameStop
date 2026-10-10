@@ -116,7 +116,11 @@ def prepare_stock_data(df):
     result.columns = ["Date", "Tesla", "GameStop"]
 
     result["Date"] = pd.to_datetime(
-        result["Date"], errors="coerce"
+    result["Date"],
+    errors="coerce",
+    format="mixed",
+    utc=True
+).dt.tz_convert(None)
     )
 
     for col in ["Tesla", "GameStop"]:
