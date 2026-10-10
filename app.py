@@ -1280,6 +1280,7 @@ if len(selected_companies) == 2:
 
 
 
+
 # =====================================================
 # CONCLUSION
 # =====================================================
@@ -1323,9 +1324,7 @@ if len(selected_companies) == 2:
             last_price = valid_prices.iloc[-1][stock_col]
 
             if first_price != 0:
-                normalized_end = (
-                    last_price / first_price
-                ) * 100
+                normalized_end = (last_price / first_price) * 100
 
                 if company == "Tesla":
                     tesla_normalized_end = normalized_end
@@ -1344,24 +1343,18 @@ if len(selected_companies) == 2:
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
     Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from
-<span style="white-space: nowrap;">${tesla_start:,.2f}M to</span>
-${tesla_end:,.2f}M, representing a
-    <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-   GameStop's revenue changed from
-<span style="white-space: nowrap;">${gme_start:,.2f}M to</span>
-${gme_end:,.2f}M, representing a
-    <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
+    Tesla's revenue changed from ${tesla_start:,.2f}M to ${tesla_end:,.2f}M,
+    representing a <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
+    GameStop's revenue changed from ${gme_start:,.2f}M to ${gme_end:,.2f}M,
+    representing a <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
 
     <br><br><b>2. Growth consistency and variation:</b><br>
     Tesla's average annual revenue growth was
     <b>{tesla_avg:+.2f}%</b>, compared with
     <b>{gme_avg:+.2f}%</b> for GameStop.
     The strongest annual revenue growth occurred in
-    {tesla_peak['year']} for Tesla
-    ({tesla_peak['value']:+.2f}%) and in
-    {gme_peak['year']} for GameStop
-    ({gme_peak['value']:+.2f}%).
+    {tesla_peak['year']} for Tesla ({tesla_peak['value']:+.2f}%)
+    and in {gme_peak['year']} for GameStop ({gme_peak['value']:+.2f}%).
     These averages can conceal considerable year-to-year variation,
     so the annual growth chart should be considered alongside
     the long-term revenue trend.
@@ -1398,37 +1391,34 @@ ${gme_end:,.2f}M, representing a
             f"<b>{gme_normalized_end:.2f}</b>. "
             f"This corresponds to a normalized change of "
             f"<b>{tesla_normalized_end - 100:+.2f}%</b> for Tesla "
-            f"and <b>{gme_normalized_end - 100:+.2f}%</b> for "
-            f"GameStop. Normalization makes their relative "
-            f"percentage performance easier to compare despite "
-            f"different starting share prices."
+            f"and <b>{gme_normalized_end - 100:+.2f}%</b> for GameStop. "
+            f"Normalization makes their relative percentage performance "
+            f"easier to compare despite different starting share prices."
         )
 
     conclusion += f"""
 
     <br><br><b>4. Overall interpretation:</b><br>
-    {growth_winner} had the higher average annual revenue growth
-    rate over the shared period. However, revenue size, revenue
-    growth, and stock-price performance describe different aspects
-    of a company's financial story. A higher average growth rate
-    does not necessarily mean a company had higher revenue in
-    every year.
+    {growth_winner} had the higher average annual revenue growth rate
+    over the shared period. However, revenue size, revenue growth,
+    and stock-price performance describe different aspects of a company's
+    financial story. A higher average growth rate does not necessarily
+    mean a company had higher revenue in every year.
 
     Stock-price performance provides a separate market perspective.
     Share prices can reflect investor expectations, perceived risk,
     and other market conditions, not just reported revenue.
-    The normalized chart compares relative stock performance over
-    the selected dates, while the original price chart preserves
-    actual share prices in USD.
+    The normalized chart compares relative stock performance over the
+    selected dates, while the original price chart preserves actual
+    share prices in USD.
 
     <br><br><b>Final takeaway:</b><br>
-    The strongest interpretation comes from considering revenue
-    size, long-term revenue change, year-over-year growth,
-    actual stock prices, and normalized stock performance together.
-    These indicators complement one another, but none alone
-    explains the full financial picture. The analysis describes
-    historical observations and is not investment advice or
-    a prediction of future returns.
+    The strongest interpretation comes from considering revenue size,
+    long-term revenue change, year-over-year growth, actual stock prices,
+    and normalized stock performance together. These indicators
+    complement one another, but none alone explains the full financial
+    picture. The analysis describes historical observations and is not
+    investment advice or a prediction of future returns.
     """
 
 else:
@@ -1444,10 +1434,9 @@ else:
 
     conclusion = f"""
     <b>1. Long-term revenue performance:</b><br>
-    {company}'s revenue changed from
-    ${start_revenue:,.2f}M in {revenue_start_year} to
-    ${end_revenue:,.2f}M in {revenue_end_year}, representing a
-    <b>{revenue_change[company]:+,.2f}%</b> total change.
+    {company}'s revenue changed from ${start_revenue:,.2f}M in
+    {revenue_start_year} to ${end_revenue:,.2f}M in {revenue_end_year},
+    representing a <b>{revenue_change[company]:+,.2f}%</b> total change.
 
     <br><br><b>2. Revenue growth:</b><br>
     Average annual revenue growth was
@@ -1477,10 +1466,9 @@ else:
     if stock is not None and not pd.isna(stock["change"]):
         conclusion += (
             f" On the normalized chart, the stock starts at 100 "
-            f"and finishes at "
-            f"<b>{100 + stock['change']:.2f}</b>, representing "
-            f"the same <b>{stock['change']:+.2f}%</b> change "
-            f"over the selected period."
+            f"and finishes at <b>{100 + stock['change']:.2f}</b>, "
+            f"representing the same <b>{stock['change']:+.2f}%</b> "
+            f"change over the selected period."
         )
 
     conclusion += """
@@ -1505,6 +1493,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
