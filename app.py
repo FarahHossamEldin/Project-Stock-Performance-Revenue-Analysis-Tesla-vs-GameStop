@@ -1344,151 +1344,24 @@ if len(selected_companies) == 2:
             "neither company; their average growth rates were equal"
         )
 
-    conclusion = f"""
-    **1. Revenue trajectory:**\
-
+   
+conclusion = f"""
+**1. Revenue trajectory:**  
 Across the shared 2009–2020 period, Tesla's revenue changed from &#36;{tesla_start:,.2f}M to &#36;{tesla_end:,.2f}M, representing a <b>+28,057.14%</b> total change. GameStop's revenue changed from &#36;{gme_start:,.2f}M to &#36;{gme_end:,.2f}M, representing a **-26.57%** total change.
 
-    <br><br><b>2. Growth consistency and variation:</b><br>
-    Tesla's average annual revenue growth was
-    <b>{tesla_avg:+.2f}%</b>, compared with
-    <b>{gme_avg:+.2f}%</b> for GameStop.
-    The strongest annual revenue growth occurred in
-    {tesla_peak['year']} for Tesla ({tesla_peak['value']:+.2f}%)
-    and in {gme_peak['year']} for GameStop ({gme_peak['value']:+.2f}%).
-    These averages can conceal considerable year-to-year variation,
-    so the annual growth chart should be considered alongside
-    the long-term revenue trend.
+**2. Stock performance:**  
+Tesla experienced substantial stock price growth over the analyzed period, while GameStop's stock performance followed a different trajectory.
 
-    <br><br><b>3. Market performance and normalized comparison:</b><br>
-    The stock-price analysis covers the selected period,
-    {stock_start_label} to {stock_end_label}.
-    """
+**3. Business growth vs. market performance:**  
+Revenue trends provide context for understanding each company's business performance, while stock prices reflect market expectations and investor sentiment as well as company fundamentals.
 
-    if tesla_stock is not None:
-        conclusion += (
-            f" Tesla's observed stock-price change was "
-            f"<b>{tesla_stock['change']:+.2f}%</b>."
-            if not pd.isna(tesla_stock["change"])
-            else " Tesla's stock-price percentage change could not be calculated."
-        )
+**4. Key takeaway:**  
+Tesla showed stronger revenue growth across the shared period, whereas GameStop's revenue declined overall. Comparing revenue and stock performance highlights the importance of examining business fundamentals alongside market behavior.
+"""
 
-    if gme_stock is not None:
-        conclusion += (
-            f" GameStop's observed stock-price change was "
-            f"<b>{gme_stock['change']:+.2f}%</b>."
-            if not pd.isna(gme_stock["change"])
-            else " GameStop's stock-price percentage change could not be calculated."
-        )
+st.markdown("### What Does the Analysis Show?")
+st.markdown(conclusion, unsafe_allow_html=True)
 
-    if (
-        tesla_normalized_end is not None
-        and gme_normalized_end is not None
-    ):
-        conclusion += (
-            f" When both stocks are rebased to 100 at the start "
-            f"of the selected period, Tesla finishes at "
-            f"<b>{tesla_normalized_end:.2f}</b> and GameStop at "
-            f"<b>{gme_normalized_end:.2f}</b>. "
-            f"This corresponds to a normalized change of "
-            f"<b>{tesla_normalized_end - 100:+.2f}%</b> for Tesla "
-            f"and <b>{gme_normalized_end - 100:+.2f}%</b> for GameStop. "
-            f"Normalization makes their relative percentage performance "
-            f"easier to compare despite different starting share prices."
-        )
-
-    conclusion += f"""
-
-    <br><br><b>4. Overall interpretation:</b><br>
-    {growth_winner} had the higher average annual revenue growth rate
-    over the shared period. However, revenue size, revenue growth,
-    and stock-price performance describe different aspects of a company's
-    financial story. A higher average growth rate does not necessarily
-    mean a company had higher revenue in every year.
-
-    Stock-price performance provides a separate market perspective.
-    Share prices can reflect investor expectations, perceived risk,
-    and other market conditions, not just reported revenue.
-    The normalized chart compares relative stock performance over the
-    selected dates, while the original price chart preserves actual
-    share prices in USD.
-
-    <br><br><b>Final takeaway:</b><br>
-    The strongest interpretation comes from considering revenue size,
-    long-term revenue change, year-over-year growth, actual stock prices,
-    and normalized stock performance together. These indicators
-    complement one another, but none alone explains the full financial
-    picture. The analysis describes historical observations and is not
-    investment advice or a prediction of future returns.
-    """
-
-else:
-    company = selected_companies[0]
-    cfg = COMPANY_COLUMNS[company]
-
-    start_revenue = revenue_comparison.iloc[0][cfg["revenue"]]
-    end_revenue = revenue_comparison.iloc[-1][cfg["revenue"]]
-
-    peak = highest_growth[company]
-    trough = lowest_growth[company]
-    stock = stock_metrics[company]
-
-    conclusion = f"""
-    <b>1. Long-term revenue performance:</b><br>
-    {company}'s revenue changed from ${start_revenue:,.2f}M in
-    {revenue_start_year} to ${end_revenue:,.2f}M in {revenue_end_year},
-    representing a <b>{revenue_change[company]:+,.2f}%</b> total change.
-
-    <br><br><b>2. Revenue growth:</b><br>
-    Average annual revenue growth was
-    <b>{average_growth[company]:+.2f}%</b>.
-    The strongest growth occurred in {peak['year']}
-    ({peak['value']:+.2f}%), while the weakest occurred in
-    {trough['year']} ({trough['value']:+.2f}%).
-    This highlights why average growth should be considered
-    alongside individual annual results.
-
-    <br><br><b>3. Stock performance:</b><br>
-    The selected stock-price period is
-    {stock_start_label} to {stock_end_label}.
-    """
-
-    if stock is not None and not pd.isna(stock["change"]):
-        conclusion += (
-            f" The observed stock-price change was "
-            f"<b>{stock['change']:+.2f}%</b>."
-        )
-    else:
-        conclusion += (
-            " A valid stock-price percentage change was not available."
-        )
-
-    # Add normalized performance for the selected company
-    if stock is not None and not pd.isna(stock["change"]):
-        conclusion += (
-            f" On the normalized chart, the stock starts at 100 "
-            f"and finishes at <b>{100 + stock['change']:.2f}</b>, "
-            f"representing the same <b>{stock['change']:+.2f}%</b> "
-            f"change over the selected period."
-        )
-
-    conclusion += """
-    <br><br><b>Final takeaway:</b><br>
-    Revenue and stock prices provide complementary but distinct
-    perspectives. Stock prices can respond to market expectations
-    and other factors beyond reported revenue. These historical
-    findings are descriptive and are not investment advice.
-    """
-
-
-st.markdown(
-    "### What Does the Analysis Show?"
-)
-
-st.markdown(
-    conclusion,
-    unsafe_allow_html=True
-)
 
 
 
