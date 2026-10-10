@@ -1352,7 +1352,7 @@ if len(selected_companies) == 2:
     )
 
 conclusion = f"""
-**🔎 Conclusion**
+
 
 ### What Does the Analysis Show?
 
@@ -1381,7 +1381,7 @@ Stock-price performance provides a separate market perspective. Share prices can
 **Final takeaway:**  
 The strongest interpretation comes from considering revenue size, long-term revenue change, year-over-year growth, actual stock prices, and normalized stock performance together. These indicators complement one another, but none alone explains the full financial picture. The analysis describes historical observations and is not investment advice or a prediction of future returns.
 """
-
+st.markdown(conclusion, unsafe_allow_html=True)
 
 
 
