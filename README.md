@@ -251,9 +251,9 @@ Project-Stock-Performance-Revenue-Analysis-Tesla-vs-GameStop/
 
 # 👩‍💻 Author
 
-## Farah Hossam
+### Farah Hossam
 
-### Data Science | Python | Data Analysis | Interactive Visualization
+#### Data Science | Python | Data Analysis | Interactive Visualization
 
 Linkedin Profile: [LinkedIn](https://linkedin.com/in/farahhossam/)
 
