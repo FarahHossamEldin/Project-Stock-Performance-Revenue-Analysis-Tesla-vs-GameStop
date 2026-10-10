@@ -422,13 +422,11 @@ for company, cfg in COMPANY_COLUMNS.items():
         revenue_comparison[revenue_col].pct_change() * 100
     )
 
-# Map company names to growth columns
 GROWTH_COLUMNS = {
     "Tesla": "Tesla Revenue Growth",
     "GameStop": "GameStop Revenue Growth"
 }
 
-# Keep a consistent shared period for revenue comparisons
 revenue_means = {
     company: revenue_comparison[cfg["revenue"]].mean()
     for company, cfg in COMPANY_COLUMNS.items()
@@ -590,15 +588,9 @@ for company in selected_companies:
     cfg = COMPANY_COLUMNS[company]
 
     kpi_items.append({
-        "label": (
-            f"💰 {company} Average Annual Revenue"
-        ),
-        "value": (
-            f"${revenue_means[company]:,.2f}M"
-        ),
-        "delta": (
-            f"FY {revenue_start_year}–{revenue_end_year}"
-        )
+        "label": f"💰 {company} Average Annual Revenue",
+        "value": f"${revenue_means[company]:,.2f}M",
+        "delta": f"FY {revenue_start_year}–{revenue_end_year}"
     })
 
 kpi_cols = st.columns(len(kpi_items))
@@ -619,21 +611,40 @@ for col, item in zip(kpi_cols, kpi_items):
 st.markdown(
     f"""
     <div class="note-box">
-        <b>📅 Data Coverage & Methodology</b><br>
-        • <b>Stock-price dataset:</b> {full_stock_start_label}
-        to {full_stock_end_label}.<br>
-        • <b>Selected stock period:</b> {stock_start_label}
-        to {stock_end_label}. Latest available price dates are
-        displayed separately on the KPI cards for each company.<br>
-        • <b>Revenue dataset:</b> FY {revenue_start_year}
-        to FY {revenue_end_year}, using the shared comparison period.<br>
-        • <b>Units:</b> Stock prices are in USD per share;
-        revenue figures are in USD millions.<br>
-        • <b>Revenue growth:</b> Year-over-year percentage change.
-        {revenue_start_year} is the baseline year, so the first
-        growth observation is for {revenue_start_year + 1}.<br>
-        • The stock period filter affects stock-related views only.
-        Revenue charts and metrics remain on the shared annual period.
+        <b>📅 Data Coverage & Methodology</b>
+        <ul>
+            <li>
+                <b>Full stock-price dataset:</b>
+                {full_stock_start_label} to {full_stock_end_label}.
+            </li>
+            <li>
+                <b>Selected stock-price period:</b>
+                {stock_start_label} to {stock_end_label}.
+                Each KPI card displays the latest available price
+                date for its company.
+            </li>
+            <li>
+                <b>Revenue dataset:</b>
+                FY {revenue_start_year} to FY {revenue_end_year}.
+                Revenue comparisons use the same annual period
+                for both companies.
+            </li>
+            <li>
+                <b>Units:</b> Stock prices are in USD per share;
+                revenue figures are in USD millions.
+            </li>
+            <li>
+                <b>Revenue growth:</b> Year-over-year percentage
+                change. {revenue_start_year} is the baseline year,
+                so the first growth observation is for
+                {revenue_start_year + 1}.
+            </li>
+            <li>
+                The stock period filter affects stock-related
+                charts, KPIs, and insights only. Revenue charts
+                and metrics remain on the shared annual period.
+            </li>
+        </ul>
     </div>
     """,
     unsafe_allow_html=True
@@ -746,6 +757,133 @@ st.plotly_chart(
 
 
 # =====================================================
+# NORMALIZED STOCK PERFORMANCE
+# =====================================================
+
+st.markdown(
+    '<div class="section-title">📊 Normalized Stock Performance</div>',
+    unsafe_allow_html=True
+)
+
+normalized_stock = pd.DataFrame({
+    "Date": filtered_stock["Date"]
+})
+
+normalized_color_map = {}
+
+for company in selected_companies:
+    stock_col = COMPANY_COLUMNS[company]["stock"]
+
+    company_prices = pd.to_numeric(
+        filtered_stock[stock_col], errors="coerce"
+    )
+
+    valid_prices = company_prices.dropna()
+
+    if valid_prices.empty:
+        continue
+
+    base_price = valid_prices.iloc[0]
+
+    if base_price == 0:
+        continue
+
+    normalized_stock[company] = (
+        company_prices / base_price
+    ) * 100
+
+    normalized_color_map[company] = (
+        COMPANY_COLUMNS[company]["color"]
+    )
+
+normalized_columns = [
+    company for company in selected_companies
+    if company in normalized_stock.columns
+]
+
+if normalized_columns:
+    fig_normalized = px.line(
+        normalized_stock,
+        x="Date",
+        y=normalized_columns,
+        color_discrete_map=normalized_color_map,
+        labels={
+            "value": "Normalized Stock Performance (Base = 100)",
+            "Date": "Date",
+            "variable": "Company"
+        }
+    )
+
+    for company in normalized_columns:
+        fig_normalized.update_traces(
+            line=dict(width=3),
+            connectgaps=False,
+            selector={"name": company}
+        )
+
+    fig_normalized = style_figure(
+        fig_normalized,
+        height=500,
+        title=(
+            f"Relative Stock Performance | "
+            f"{stock_start_label} to {stock_end_label}"
+        )
+    )
+
+    fig_normalized.update_yaxes(
+        title="Normalized Value (Starting Value = 100)"
+    )
+
+    fig_normalized.add_hline(
+        y=100,
+        line_dash="dash",
+        line_color="rgba(255,255,255,0.55)",
+        annotation_text="Starting Point = 100",
+        annotation_position="bottom right"
+    )
+
+    st.plotly_chart(
+        fig_normalized,
+        width="stretch",
+        config={"responsive": True, "displaylogo": False}
+    )
+
+    st.markdown(
+        f"""
+        <div class="note-box">
+            <b>How to read this chart</b>
+            <ul>
+                <li>
+                    <b>Period covered:</b>
+                    {stock_start_label} to {stock_end_label}.
+                </li>
+                <li>
+                    Each stock is rebased to 100 using its first
+                    available valid closing price in the selected
+                    period.
+                </li>
+                <li>
+                    A normalized value of 150 represents a 50%
+                    increase from the starting price. A value of
+                    80 represents a 20% decrease.
+                </li>
+                <li>
+                    This chart compares percentage performance
+                    rather than actual share prices in USD.
+                </li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.warning(
+        "Normalized stock performance cannot be calculated "
+        "for the selected companies and period."
+    )
+
+
+# =====================================================
 # STOCK PRICE PERFORMANCE INSIGHTS
 # =====================================================
 
@@ -808,17 +946,31 @@ for company in selected_companies:
         f"<b>${metrics['max_price'] - metrics['min_price']:,.2f}</b>."
     ))
 
+
+stock_insights_by_company = {
+    company: [] for company in selected_companies
+}
+
+for title, body in stock_insight_items:
+    for company in selected_companies:
+        if company in title:
+            stock_insights_by_company[company].append(
+                (title, body)
+            )
+            break
+
 stock_insight_cols = st.columns(2)
 
-for index, (title, body) in enumerate(stock_insight_items):
-    with stock_insight_cols[index % 2]:
-        st.markdown(
-            f'<div class="insight-card">'
-            f'<div class="insight-title">{title}</div>'
-            f'<div class="insight-text">{body}</div>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
+for col_index, company in enumerate(selected_companies):
+    with stock_insight_cols[col_index]:
+        for title, body in stock_insights_by_company[company]:
+            st.markdown(
+                f'<div class="insight-card">'
+                f'<div class="insight-title">{title}</div>'
+                f'<div class="insight-text">{body}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
 
 # =====================================================
@@ -1037,17 +1189,30 @@ for company in selected_companies:
     ))
 
 
+revenue_insights_by_company = {
+    company: [] for company in selected_companies
+}
+
+for title, body in revenue_insight_items:
+    for company in selected_companies:
+        if company in title:
+            revenue_insights_by_company[company].append(
+                (title, body)
+            )
+            break
+
 insight_cols = st.columns(2)
 
-for index, (title, body) in enumerate(revenue_insight_items):
-    with insight_cols[index % 2]:
-        st.markdown(
-            f'<div class="insight-card">'
-            f'<div class="insight-title">{title}</div>'
-            f'<div class="insight-text">{body}</div>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
+for col_index, company in enumerate(selected_companies):
+    with insight_cols[col_index]:
+        for title, body in revenue_insights_by_company[company]:
+            st.markdown(
+                f'<div class="insight-card">'
+                f'<div class="insight-title">{title}</div>'
+                f'<div class="insight-text">{body}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
 
 # =====================================================
@@ -1136,12 +1301,41 @@ if len(selected_companies) == 2:
     tesla_stock = stock_metrics["Tesla"]
     gme_stock = stock_metrics["GameStop"]
 
+    # Normalized stock performance over the selected period
+    tesla_normalized_end = None
+    gme_normalized_end = None
+
+    for company in ["Tesla", "GameStop"]:
+        stock_col = COMPANY_COLUMNS[company]["stock"]
+
+        valid_prices = (
+            filtered_stock[["Date", stock_col]]
+            .dropna(subset=[stock_col])
+            .sort_values("Date")
+        )
+
+        if not valid_prices.empty:
+            first_price = valid_prices.iloc[0][stock_col]
+            last_price = valid_prices.iloc[-1][stock_col]
+
+            if first_price != 0:
+                normalized_end = (
+                    last_price / first_price
+                ) * 100
+
+                if company == "Tesla":
+                    tesla_normalized_end = normalized_end
+                else:
+                    gme_normalized_end = normalized_end
+
     if tesla_avg > gme_avg:
         growth_winner = "Tesla"
     elif gme_avg > tesla_avg:
         growth_winner = "GameStop"
     else:
-        growth_winner = "neither company; their average growth rates were equal"
+        growth_winner = (
+            "neither company; their average growth rates were equal"
+        )
 
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
@@ -1166,10 +1360,11 @@ if len(selected_companies) == 2:
     so the annual growth chart should be considered alongside
     the long-term revenue trend.
 
-    <br><br><b>3. Market performance:</b><br>
-    The stock-price chart examines market performance over the
-    selected period, {stock_start_label} to {stock_end_label}.
+    <br><br><b>3. Market performance and normalized comparison:</b><br>
+    The stock-price analysis covers the selected period,
+    {stock_start_label} to {stock_end_label}.
     """
+
     if tesla_stock is not None:
         conclusion += (
             f" Tesla's observed stock-price change was "
@@ -1186,22 +1381,48 @@ if len(selected_companies) == 2:
             else " GameStop's stock-price percentage change could not be calculated."
         )
 
+    if (
+        tesla_normalized_end is not None
+        and gme_normalized_end is not None
+    ):
+        conclusion += (
+            f" When both stocks are rebased to 100 at the start "
+            f"of the selected period, Tesla finishes at "
+            f"<b>{tesla_normalized_end:.2f}</b> and GameStop at "
+            f"<b>{gme_normalized_end:.2f}</b>. "
+            f"This corresponds to a normalized change of "
+            f"<b>{tesla_normalized_end - 100:+.2f}%</b> for Tesla "
+            f"and <b>{gme_normalized_end - 100:+.2f}%</b> for "
+            f"GameStop. Normalization makes their relative "
+            f"percentage performance easier to compare despite "
+            f"different starting share prices."
+        )
+
     conclusion += f"""
 
     <br><br><b>4. Overall interpretation:</b><br>
     {growth_winner} had the higher average annual revenue growth
     rate over the shared period. However, revenue size, revenue
     growth, and stock-price performance describe different aspects
-    of a company's financial story. Share prices also reflect
-    market expectations, risk, and other factors, so revenue trends
-    alone cannot explain stock movements.
+    of a company's financial story. A higher average growth rate
+    does not necessarily mean a company had higher revenue in
+    every year.
+
+    Stock-price performance provides a separate market perspective.
+    Share prices can reflect investor expectations, perceived risk,
+    and other market conditions, not just reported revenue.
+    The normalized chart compares relative stock performance over
+    the selected dates, while the original price chart preserves
+    actual share prices in USD.
 
     <br><br><b>Final takeaway:</b><br>
-    Combining historical stock prices, annual revenue, and
-    year-over-year growth provides a more complete comparison
-    than relying on any single metric. The findings describe
-    historical performance and should not be interpreted as
-    investment advice or a prediction of future returns.
+    The strongest interpretation comes from considering revenue
+    size, long-term revenue change, year-over-year growth,
+    actual stock prices, and normalized stock performance together.
+    These indicators complement one another, but none alone
+    explains the full financial picture. The analysis describes
+    historical observations and is not investment advice or
+    a prediction of future returns.
     """
 
 else:
@@ -1244,6 +1465,16 @@ else:
     else:
         conclusion += (
             " A valid stock-price percentage change was not available."
+        )
+
+    # Add normalized performance for the selected company
+    if stock is not None and not pd.isna(stock["change"]):
+        conclusion += (
+            f" On the normalized chart, the stock starts at 100 "
+            f"and finishes at "
+            f"<b>{100 + stock['change']:.2f}</b>, representing "
+            f"the same <b>{stock['change']:+.2f}%</b> change "
+            f"over the selected period."
         )
 
     conclusion += """
