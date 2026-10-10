@@ -1344,11 +1344,13 @@ if len(selected_companies) == 2:
     conclusion = f"""
     <b>1. Revenue trajectory:</b><br>
     Across the shared {revenue_start_year}–{revenue_end_year} period,
-    Tesla's revenue changed from ${tesla_start:,.2f}M&nbsp;to
-    ${tesla_end:,.2f}M, representing a
+    Tesla's revenue changed from
+<span style="white-space: nowrap;">${tesla_start:,.2f}M to</span>
+${tesla_end:,.2f}M, representing a
     <b>{revenue_change['Tesla']:+,.2f}%</b> total change.
-    GameStop's revenue changed from ${gme_start:,.2f}M&nbsp;to
-    ${gme_end:,.2f}M, representing a
+   GameStop's revenue changed from
+<span style="white-space: nowrap;">${gme_start:,.2f}M to</span>
+${gme_end:,.2f}M, representing a
     <b>{revenue_change['GameStop']:+,.2f}%</b> total change.
 
     <br><br><b>2. Growth consistency and variation:</b><br>
